@@ -1,0 +1,26 @@
+# 基于当前预览的固定 ERPNext 镜像扩展，保留 Frappe / ERPNext 版本。
+FROM frappe/erpnext:v16.55.0@sha256:6b14638c3d844817dc735aa9b9310574438a6c317434c5c17b6e848983f8136b
+
+ARG CRM_COMMIT=9ace234fceb3c5e7bd630b74f44ba1779e831abe
+LABEL org.opencontainers.image.title="BizBase ERPNext + Frappe CRM" \
+      io.bizbase.crm.version="16.0.4" \
+      io.bizbase.crm.revision="9ace234fceb3c5e7bd630b74f44ba1779e831abe"
+
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:0 crm /tmp/crm
+
+# 构建时安装 Python/前端依赖并生成静态资源；缓存不进入最终镜像层。
+# 运行时沿用上游 entrypoint，把镜像内 assets 链接到 sites 卷。
+RUN test "$(git -C /tmp/crm rev-parse HEAD)" = "$CRM_COMMIT" \
+    && export YARN_CACHE_FOLDER=/tmp/crm-yarn-cache \
+    && export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    && bench get-app --skip-assets /tmp/crm \
+    && rm -rf sites/assets \
+    && ln -s /home/frappe/frappe-bench/assets sites/assets \
+    && bench build --app crm --production \
+    && env/bin/pip check \
+    && rm -rf /tmp/crm /tmp/crm-yarn-cache \
+       apps/crm/node_modules apps/crm/frontend/node_modules \
+       /home/frappe/.cache/pip /home/frappe/.cache/uv \
+    && chmod -R g=u apps/crm

@@ -1,0 +1,22 @@
+# 与项目根目录 pwd.yml 一起使用，复用 bizbase 现有数据库和站点卷。
+x-crm-image: &crm-image
+  image: bizbase/erpnext-crm:16.55.0-16.0.4
+  pull_policy: never
+
+services:
+  backend:
+    <<: *crm-image
+  frontend:
+    <<: *crm-image
+  configurator:
+    <<: *crm-image
+  create-site:
+    <<: *crm-image
+  queue-long:
+    <<: *crm-image
+  queue-short:
+    <<: *crm-image
+  scheduler:
+    <<: *crm-image
+  websocket:
+    <<: *crm-image
