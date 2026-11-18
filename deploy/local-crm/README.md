@@ -1,6 +1,6 @@
-# 本地 ERPNext + Frappe CRM 预览
+# 本地 ERPNext + Frappe CRM + Frappe HR 预览
 
-本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
+本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM 和 Frappe HR，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
 
 ## 固定版本
 
@@ -10,7 +10,9 @@
 | ERPNext | 16.55.0 |
 | Frappe CRM | 16.0.4 |
 | CRM 提交 | `9ace234fceb3c5e7bd630b74f44ba1779e831abe` |
-| 本地镜像 | `bizbase/erpnext-crm:16.55.0-16.0.4` |
+| Frappe HR | 16.54.1 |
+| HR 提交 | `a01032350ba1b799345b862cb122fa408bf6780e` |
+| 当前运行镜像 | `bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1` |
 
 基础镜像摘要固定在 `Containerfile` 中。CRM 的该版本声明支持 Frappe `>=16.0.0,<17.0.0`；不使用 `develop` 分支。
 
@@ -29,16 +31,26 @@ docker build --progress plain \
   "$HOME/.cache/bizbase-crm-build"
 ```
 
-已有源码缓存时无需重新克隆。需要代理时，Git 使用本机 `HTTPS_PROXY`；Docker 构建可增加 `--build-arg HTTP_PROXY=... --build-arg HTTPS_PROXY=...`，地址必须能从 Docker 虚拟机访问。代理不写入运行时配置。
+以上构建 CRM 基础镜像。当前覆盖配置使用含 HR 的镜像，还需执行：
+
+```bash
+rtk proxy git clone --depth 1 --branch v16.54.1 https://github.com/frappe/hrms.git \
+  "$HOME/.cache/bizbase-hr-build/hrms"
+rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.hr \
+  -t bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1 "$HOME/.cache/bizbase-hr-build"
+```
+
+HR 此版本要求 Frappe、ERPNext `>=16.50.0,<17.0.0`，当前组合满足。已有源码缓存时无需重新克隆。需要代理时，Git 使用本机 `HTTPS_PROXY`；Docker 构建可增加 `--build-arg HTTP_PROXY=... --build-arg HTTPS_PROXY=...`，地址必须能从 Docker 虚拟机访问。代理不写入运行时配置。
 
 ## 启动与访问
 
-**安装 CRM 后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为不包含 CRM 代码的上游镜像。**
+**安装 CRM / HR 后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为不包含 CRM / HR 代码的上游镜像。**
 
 ```bash
 docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml up -d
 ```
 
+- Frappe HR：<http://127.0.0.1:8080/desk/hr-setup>
 - 独立 CRM：<http://localhost:8080/crm>
 - ERPNext：<http://localhost:8080/desk>
 - ERPNext 原有 CRM：<http://localhost:8080/desk/crm>
@@ -84,3 +96,22 @@ docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml l
 ```
 
 保留数据库和文件卷；不要使用 `down -v`。安装失败时应先检查日志。恢复安装前状态需要同时恢复安装前的数据库、配置和文件备份，再切回原镜像，不能仅切换镜像。
+
+
+## HR 安装及验证（2026-11-18）
+
+用户同意把官方 HR 应用装入现有预览。沿用 `bizbase` / `frontend` / 8080，未新建站点、数据库或业务 App。
+
+- 已构建固定版本镜像、执行 `install-app hrms`、`migrate`、`clear-cache`，恢复维护模式外访问及 scheduler、两个队列 worker。
+- 基础 CRM 镜像 ID：`sha256:0ffc5fd8061155bbc89c74361ae65b00eea560c36a7828b4e2d5a9012464ffa2`；HR 镜像 ID：`sha256:414d6388d1eab2e50b41c723fb59cfc30dad85e5a9836ca5e6b7775291d946ee`。
+- `pip check`、数据库迁移、`bench doctor` 通过；后台搜索索引及 HR 面试提醒任务成功运行。未创建员工、候选人或业务测试记录。
+- 浏览器现有登录会话实测应用首页、HR 工作台、员工列表、新建员工表单、招聘工作区和候选人列表；管理员 HTTP 会话访问 CRM、HR 自助端、HR 工作台、Build 均返回 200。HR JS/CSS/图标资源返回 200。未做工资核算或完整审批流程验收。
+- 安装前后：用户 3、公司 1、联系人 1；客户、ERP 线索/商机、销售订单、项目、员工、CRM 线索/商机均为 0。原有 21 个 Custom Field 的完整记录哈希未变；HR 官方安装新增 37 个字段，共 58 个。自定义 DocType 数量维持 0。
+- 修正上游 Nginx 模板在固定站点名时重写 Socket.IO Origin 的问题：`nginx.conf.template` 保留原请求 Origin，仍由 Frappe 校验其与 Host 一致，不关闭来源验证。模板通过 frontend 的只读挂载持久化。已验证 localhost 来源通过来源检查，异源仍返回 `Invalid origin`。
+- 安装前数据库、站点配置及公私附件备份已复制至 `/Users/aij/.codex/private/bizbase-hr-20261118/backup/`，并检查 gzip/tar/JSON 可读性；SHA256、前后快照和迁移日志位于该私有目录。不纳入 Git，未实际演练恢复。
+
+已有站点首次安装 HR 时，沿用上面的备份及维护流程，在镜像切换后运行 `bench --site frontend install-app hrms` 和 `bench --site frontend migrate`。只重启已安装站点无需再次安装。
+
+恢复安装前状态必须同时恢复安装前数据库、站点配置、公私附件，再切回 `bizbase/erpnext-crm:16.55.0-16.0.4`；保留原数据库和站点卷，不使用 `down -v`。当前无恢复需要。
+
+员工数据、假期政策、审批角色、薪资及国内税社保规则尚未配置；官方界面部分文案仍为英文。本次仅安装并验证基础可用性。

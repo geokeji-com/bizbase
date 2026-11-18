@@ -4,10 +4,11 @@
 
 ## 1. 先读：当前停在哪里
 
-**最新用户指令是 D-012：撤回刚完成的目录实现，删除新建实例，回到原来的预览环境直接使用 Build；先恢复到这个状态。该动作已经完成。** 当前请求仅为整理交接，没有启动新的实现。
+**最新用户指令是 D-013：在原预览中安装官方 Frappe HR，已完成安装和基础验证。** D-012 的目录实现撤回及原环境保留仍有效。安装与恢复说明见 [本地预览](../../deploy/local-crm/README.md)。
 
+- HR 入口：<http://127.0.0.1:8080/desk/hr-setup>；镜像 `bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1`。员工与薪资等业务设置尚未配置。
 - 原入口：<http://127.0.0.1:8080/desk/build>；Compose 项目 `bizbase`，站点 `frontend`。
-- 原环境保留 Frappe 16.56.0、ERPNext 16.55.0、Frappe CRM 16.0.4；当前没有安装自研 BizBase App。原账号、权限、业务数据与已有配置保留。
+- 原环境保留 Frappe 16.56.0、ERPNext 16.55.0、Frappe CRM 16.0.4，并增加 Frappe HR 16.54.1；当前没有安装自研 BizBase App。原账号、权限、业务数据与已有配置保留。
 - 新项目 `bizbase-r01` 的 8 个容器、5 个数据卷、专属网络和 5 个目录镜像已删除；8081、8082 已停止提供本轮服务。
 - 撤回提交 `1ff9276` 已推送 `origin/main`；只撤回两个实现提交 `8e5afa8`、`61f0c0c`，保留规划、研究和 Git 历史。详见 [withdrawal.md](rounds/01/withdrawal.md)。
 - 自研客户目录页面、API、原型、部署/测试脚本及目录 CI 已从当前工作树移除；历史版本标签不表示当前可用版本。
@@ -51,7 +52,8 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 | D-007—D-009 | 目录最小模型、显式客户授权、真实历史快照曾获确认；具体实现已被 D-012 撤回，不能当成当前站点已有能力或自动重建依据。 |
 | D-010 | Agent 选择的独立验收环境路线，已被 D-012 覆盖。 |
 | D-011 | 用户允许第 01 轮无需中途确认自主完成；已被 D-012 终止，不外推成以后所有轮次的授权。 |
-| D-012 | 最新指令：撤回实现、删除新实例、回到原 8080 Build。当前操作基线。 |
+| D-012 | 最新指令：撤回实现、删除新实例、回到原 8080 Build。目录撤回和原环境保留的基线。 |
+| D-013 | 在原站点增加官方 HR，已安装 16.54.1；本地预览范围，不扩展到生产和业务制度配置。 |
 
 完整 GEO 表结构、全公司权威写入归属、主库迁移、旧系统退役、实时接口、SSO、对客权限及生产部署仍需对应证据与范围。已认可整体规划不代表所有候选对象必须建表。
 
@@ -70,7 +72,7 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 |---|---|
 | 目标与整体规划 | [natural-plan.md](../planning/natural-plan.md)、[opportunities.md](../planning/opportunities.md)、[delivery-map.md](../planning/delivery-map.md)。已认可方向；机会清单并非全部实施承诺。 |
 | 完整业务与 SOP 综合模型 | [geo-service-model.md](../business/2026-11-17-geo-service-model.md)、[bizbase-overall-plan.md](../business/2026-11-17-bizbase-overall-plan.md)。事实与建模建议分开；旧“现在自研 App”的建议服从 D-012。 |
-| 13 项官方应用及理由 | [app-selection.md](../business/2026-11-17-bizbase-positioning-and-app-selection.md)。13 项包含框架，不是全部都装。历史建议保留现有三项，当前没有必须追加的 App；Insights 按真实报表问题试评，其余按需求。新安装前重核版本、维护状态和组合兼容性。 |
+| 13 项官方应用及理由 | [app-selection.md](../business/2026-11-17-bizbase-positioning-and-app-selection.md)。13 项包含框架，不是全部都装。历史建议保留三项；D-013 后现有四项（新增 HR）；Insights 按真实报表问题试评，其余按需求。新安装前重核版本、维护状态和组合兼容性。 |
 | 框架、ERP/CRM 能力边界 | `docs/research/2026-11-17-frappe-platform-boundary.md`、`docs/research/2026-11-17-business-apps-boundary.md`；目前为本机未跟踪研究文件，完整清单见下一节。 |
 | 国内外厂商研究 | [海外流程](../research/2026-11-17-geo-vendor-workflows.md)、[国内证据](../research/2026-11-17-geo-china-evidence.md)。公开事实/营销自述/推断分开，同名指标不自动同义。 |
 | SOP 歧义、样本和权限证据 | [evidence.md](evidence.md)，尤其 E-02、E-03、E-07、E-09。目录样本来自 2026-11-02 历史记录，不是当前在服/合同或生产权限。 |
@@ -100,6 +102,8 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 | 未跟踪 | `docs/research/2026-11-17-apps-suite-catalog-recheck.md` |
 | 未跟踪 | `docs/research/2026-11-17-business-apps-boundary.md` |
 | 未跟踪 | `docs/research/2026-11-17-frappe-platform-boundary.md` |
+
+D-013 另新增 `Containerfile.hr`、`nginx.conf.template`，修改原覆盖配置和 README，以及本交接和 decisions；以实时 Git 状态为准。
 
 保留这些工作区内容，提交时按文件选择。原预览的容器和卷与已删除实验分属不同项目；其他仓库的 Docker 资源也在同一机器，操作按项目标签限定范围。
 

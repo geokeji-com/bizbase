@@ -1,0 +1,21 @@
+# 先按 Containerfile 构建固定版本的 CRM 基础镜像，再叠加 HR。
+FROM bizbase/erpnext-crm:16.55.0-16.0.4
+
+ARG HRMS_COMMIT=a01032350ba1b799345b862cb122fa408bf6780e
+LABEL org.opencontainers.image.title="BizBase ERPNext + Frappe CRM + Frappe HR" \
+      io.bizbase.hrms.version="16.54.1" \
+      io.bizbase.hrms.revision="a01032350ba1b799345b862cb122fa408bf6780e"
+
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:0 hrms /tmp/hrms
+RUN test "$(git -C /tmp/hrms rev-parse HEAD)" = "$HRMS_COMMIT" \
+    && export YARN_CACHE_FOLDER=/tmp/hrms-yarn-cache \
+    && export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    && bench get-app --skip-assets /tmp/hrms \
+    && bench build --app hrms --production \
+    && env/bin/pip check \
+    && rm -rf /tmp/hrms /tmp/hrms-yarn-cache \
+       apps/hrms/node_modules apps/hrms/frontend/node_modules apps/hrms/roster/node_modules \
+       /home/frappe/.cache/pip /home/frappe/.cache/uv \
+    && chmod -R g=u apps/hrms
