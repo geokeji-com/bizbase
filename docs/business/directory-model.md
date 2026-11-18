@@ -1,6 +1,8 @@
 <!-- ratchet: kind=domain-model status=confirmed by=user on=2026-11-18 -->
 # 首个实施版本：受控目录最小模型
 
+> 实施状态：按 D-012，第 01 轮实现及独立实例已撤回；本文保留已讨论的模型，不代表原 8080 站点已有这些对象或权限。当前只恢复原环境 Build，见[撤回记录](../cycle/rounds/01/withdrawal.md)。
+
 2026-11-18，v0.1，用户以“最小模型和三项接受”确认。沿用 D-003、D-004 的目标与交付定义，模型、权限及数据方式分别见 D-007、D-008、D-009 和[已答清单 3](../cycle/sheets/decision-sheet-03.md)。本模型只覆盖客户—优化对象目录，完整 GEO 候选继续保留，未授权模型之外的数据迁移。
 
 先看[关系、流程与状态图](directory-model-views.md)。真实样本位于本机私有材料 `~/.codex/private/bizbase-org-audit-20261117/20261118-first-directory-sample.md`；下文 S-01 指该样本，U-01 指本地已存在的一名 System User，其同时拥有 System Manager 角色，不是受限读者样本。新授权例子是待建立的验收配置，不是已存在的业务授权。

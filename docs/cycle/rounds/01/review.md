@@ -1,6 +1,8 @@
 <!-- ratchet: kind=review status=confirmed by=delegated-agent on=2026-11-18 -->
 # 第 1 轮回顾
 
+> 历史记录：本轮实现和独立实例已按 D-012 撤回；下文当时的后续建议不再作为当前动作。当前仅保留原 8080 Build，详见[撤回记录](withdrawal.md)。
+
 依 D-011 由 Agent 自主复盘；标记 delegated-agent，不冒充用户亲自验收。仅评价本地目录首版。
 
 ## 假设结论

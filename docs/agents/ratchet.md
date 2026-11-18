@@ -15,12 +15,13 @@ round_dir_format: {n:02d}
 status_file: docs/cycle/STATUS.md
 lessons: docs/cycle/lessons.md
 stale_words: 待裁决,待确认,待定,TBD
-test_cmd: rtk proxy python3 scripts/directory/verify_round01.py
+test_cmd:
 ci_files: .github/workflows/*.yml,.github/workflows/*.yaml
 ```
 
 按 D-005，已确认的整体规划作为 brief；按 D-006，当前领域模型入口是目录最小模型，并已由 D-007—D-009 获得确认。完整 GEO 候选保留原位置供后续扩展，不把历史建议自动视为用户裁决。
-第 01 轮完整验收入口为 scripts/directory/verify_round01.py，包含实际站点迁移、身份准备、数据库、HTTP 与浏览器验证。公开 CI 使用同入口的 --public 合成检查模式；其通过不能替代本地真实样本验收。
+当前执行边界按 D-012：第 01 轮实现和独立实例已撤回，只保留原 8080 预览环境，后续在其 Build 中操作。本次只恢复环境，不开始新模型配置或下一轮开发。原脚本与目录 CI 已移除，test_cmd 留空以阻止沿用旧验收发布；新的实施范围确定后再设置实际检查命令。
+第 01 轮的发布、门禁与验证数字均为历史记录，不代表当前部署或继续执行授权；当前运行事实见 docs/cycle/rounds/01/withdrawal.md。
 仓库盘点的私有细节保留在本机私有目录；项目内仅记录抽象结论和证据编号。
 
 用户在 D-002 明确采用自然式规划：首轮整体完成前四步，入口为 docs/planning/natural-plan.md；第五步的实施行动使用 ratchet。已确认的整体规划直接引用，只评审当轮新增变化，不每轮重做全局规划。

@@ -1,6 +1,8 @@
 <!-- ratchet: kind=readback status=confirmed by=user on=2026-11-18 -->
 # 第 01 轮工程计划（readback）
 
+> 历史计划：D-012 已撤回本轮实现和独立实例，终止此计划的继续执行。当前只恢复原 8080 Build，详见[撤回记录](withdrawal.md)。
+
 状态：用户已明确“工程计划确认”，并按 D-011 授权第一轮全程自主执行。模型及三项取舍已由 D-007—D-009 确认；执行路径的可逆选择记录为 D-010。中间检查由 Agent 实际执行和留证，不冒充用户亲自试用。
 
 本文保留启动前计划与检查基线；实际实施进度、调整和结果以 [execution.md](execution.md)、[release.md](release.md) 为准。

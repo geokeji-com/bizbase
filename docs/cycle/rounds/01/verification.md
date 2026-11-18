@@ -1,5 +1,7 @@
 # 第 01 轮验收对应表
 
+> 历史验收：本轮实现与脚本已按 D-012 撤回，下列命令不再适用于当前工作树。原验证结果留作证据，当前状态见[撤回记录](withdrawal.md)。
+
 完整命令：`rtk proxy python3 scripts/directory/verify_round01.py`。它不会缺样本仍通过，也不会用公开 CI 代替真实站点。证据存放在本机私有 `bizbase-round01/evidence/`；公开文档只记录状态与匿名编号。
 
 | 验收 | 真实验证入口 | 结果 |

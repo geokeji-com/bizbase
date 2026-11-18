@@ -1,6 +1,8 @@
 <!-- ratchet: kind=release status=done by=delegated-agent done_at=2026-11-18T11:41 -->
 # 第 1 轮发布记录
 
+> 已撤回（D-012，2026-11-18）：本轮实例和实现已删除，8081 不再提供服务。以下保留发布当时的历史证据；当前状态以[撤回记录](withdrawal.md)为准，命令不可直接用于当前工作树。
+
 发布范围依 D-004、D-011：本地隔离验收版。Agent 自主执行并留证，未宣称生产上线或用户亲自验收。
 
 ## 构建产物
@@ -49,7 +51,7 @@ Round 01 full local acceptance passed; private evidence saved
 <!-- section: deploy -->
 
 - `scripts/directory/bootstrap.py` build/up/data；Compose 固定项目 `bizbase-r01`，只开放 127.0.0.1:8081。真实数据只读挂在 backend 的独立卷，未进入镜像。
-- 当前入口 <http://127.0.0.1:8081/desk/bb-directory>；登录凭据在本机私有 login.txt。[使用与运维](runbook.md)。生产部署不适用：本轮明确为本地验收。
+- 发布时入口 <http://127.0.0.1:8081/desk/bb-directory>，现已撤回；当时登录凭据位于本机私有 login.txt。[当前使用状态](runbook.md)。生产部署不适用：本轮明确为本地验收。
 
 ## 安全
 <!-- section: security -->
