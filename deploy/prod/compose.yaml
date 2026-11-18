@@ -1,0 +1,43 @@
+name: bizbase-prod
+
+x-runtime: &runtime
+  image: ${BIZBASE_IMAGE:?Set the verified amd64 image tag before deploying}
+  platform: linux/amd64
+  pull_policy: never
+  restart: unless-stopped
+  # prepare_host.py creates the assets link once for all processes.
+  entrypoint: []
+  environment:
+    BIZBASE_YISHAN_ID_CONFIG: /run/bizbase-id/settings.json
+  volumes:
+    - /var/lib/bizbase-prod/sites:/home/frappe/frappe-bench/sites
+    - /var/lib/bizbase-prod/logs:/home/frappe/frappe-bench/logs
+    - /etc/bizbase/yishan-runtime:/run/bizbase-id:ro
+  logging:
+    driver: json-file
+    options: { max-size: 10m, max-file: '3' }
+
+services:
+  backend:
+    <<: *runtime
+    command: [start.sh]
+  websocket:
+    <<: *runtime
+    command: [node, /home/frappe/frappe-bench/apps/frappe/socketio.js]
+  scheduler:
+    <<: *runtime
+    command: [bench, schedule]
+  worker:
+    <<: *runtime
+    command: [bench, worker, --queue, 'short,default,long']
+  frontend:
+    <<: *runtime
+    command: [nginx-entrypoint.sh]
+    depends_on: [backend, websocket]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: bizbase.geokeji.com
+      UPSTREAM_REAL_IP_ADDRESS: ${BIZBASE_PROXY_IP:-127.0.0.1}
+    ports:
+      - '127.0.0.1:3180:8080'

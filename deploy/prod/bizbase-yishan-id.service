@@ -1,0 +1,9 @@
+[Unit]
+Description=Verify and publish BizBase OIDC client settings
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /opt/bizbase-prod/sync_yishan_id.py
+NoNewPrivileges=yes
+PrivateTmp=yes
+TimeoutStartSec=30

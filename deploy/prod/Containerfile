@@ -1,0 +1,32 @@
+# The production image starts at frappe/base, not at the ERP distribution.
+ARG REG=docker.io
+FROM ${REG}/frappe/erpnext@sha256:fa1e012a931b12721c4c1407fc0d7876a5ab87d7b3d0757d07e57b2a7d5f5963 AS upstream
+WORKDIR /home/frappe/frappe-bench
+RUN env/bin/pip uninstall -y erpnext \
+    && find assets/locale -type f ! -name frappe.mo -delete \
+    && rm assets/erpnext \
+    && for f in assets/assets.json assets/assets-rtl.json; do jq 'with_entries(select(.value | startswith("/assets/frappe/")))' "$f" > "$f.clean" && mv "$f.clean" "$f"; done
+
+FROM ${REG}/frappe/base@sha256:be6e9bd9059535800e631d660a8f19813ddc258446c2d5aed7696765c9c62042
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --from=upstream --chown=frappe:0 /home/frappe/frappe-bench/apps/frappe apps/frappe
+COPY --from=upstream --chown=frappe:0 /home/frappe/frappe-bench/env env
+COPY --from=upstream --chown=frappe:0 /home/frappe/frappe-bench/assets assets
+COPY --chown=frappe:0 apps/geo_operations apps/geo_operations
+COPY --chown=frappe:0 apps/yishan_id_login apps/yishan_id_login
+COPY --chmod=0755 resources/core/main-entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 resources/core/start.sh /usr/local/bin/start.sh
+RUN mkdir -p sites logs config/pids \
+    && printf '%s\n' frappe geo_operations yishan_id_login > sites/apps.txt \
+    && printf '{}\n' > sites/common_site_config.json \
+    && env/bin/pip install --no-cache-dir --disable-pip-version-check --no-deps -e apps/geo_operations -e apps/yishan_id_login \
+    && env/bin/pip check \
+    && env/bin/python -c 'from importlib.util import find_spec; import frappe, geo_operations, yishan_id_login; assert frappe.__version__ == "16.56.0"; assert all(find_spec(p) is None for p in ("erpnext", "crm", "hrms"))' \
+    && ln -s /home/frappe/frappe-bench/apps/geo_operations/geo_operations/public assets/geo_operations \
+    && ln -s /home/frappe/frappe-bench/apps/yishan_id_login/yishan_id_login/public assets/yishan_id_login \
+    && test -f assets/frappe/dist/js/desk.bundle.*.js \
+    && test -z "$(find apps env assets -iname '*erpnext*' ! -path 'apps/frappe/*' -print -quit)"
+VOLUME ["/home/frappe/frappe-bench/sites", "/home/frappe/frappe-bench/logs"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["start.sh"]

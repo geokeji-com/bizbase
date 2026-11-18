@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh BizBase OIDC availability
+
+[Timer]
+OnBootSec=10s
+OnUnitInactiveSec=60s
+AccuracySec=2s
+
+[Install]
+WantedBy=timers.target
