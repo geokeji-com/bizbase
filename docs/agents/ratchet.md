@@ -15,11 +15,12 @@ round_dir_format: {n:02d}
 status_file: docs/cycle/STATUS.md
 lessons: docs/cycle/lessons.md
 stale_words: 待裁决,待确认,待定,TBD
+test_cmd: rtk proxy python3 scripts/directory/verify_round01.py
 ci_files: .github/workflows/*.yml,.github/workflows/*.yaml
 ```
 
 按 D-005，已确认的整体规划作为 brief；按 D-006，当前领域模型入口是目录最小模型，并已由 D-007—D-009 获得确认。完整 GEO 候选保留原位置供后续扩展，不把历史建议自动视为用户裁决。
-当前没有 BizBase 业务实现的验收命令；在正式发布前确定 test_cmd，不以文档检查冒充业务测试。
+第 01 轮完整验收入口为 scripts/directory/verify_round01.py，包含实际站点迁移、身份准备、数据库、HTTP 与浏览器验证。公开 CI 使用同入口的 --public 合成检查模式；其通过不能替代本地真实样本验收。
 仓库盘点的私有细节保留在本机私有目录；项目内仅记录抽象结论和证据编号。
 
 用户在 D-002 明确采用自然式规划：首轮整体完成前四步，入口为 docs/planning/natural-plan.md；第五步的实施行动使用 ratchet。已确认的整体规划直接引用，只评审当轮新增变化，不每轮重做全局规划。
