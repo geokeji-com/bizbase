@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEO 运营第一版设计</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root { --fg:#1f2328; --muted:#59636e; --line:#d1d9e0; --bg:#fff; --side:#f6f8fa; --accent:#0969da; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.7 -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; color:var(--fg); background:var(--bg); }
+  nav { position:fixed; top:0; left:0; bottom:0; width:260px; overflow:auto; background:var(--side); border-right:1px solid var(--line); padding:16px 12px; }
+  nav h1 { font-size:15px; margin:0 0 12px; }
+  nav a { display:block; padding:6px 10px; border-radius:6px; color:var(--fg); text-decoration:none; font-size:14px; }
+  nav a:hover { background:#eaeef2; }
+  nav a.active { background:var(--accent); color:#fff; }
+  nav .toc a { font-size:13px; color:var(--muted); padding:3px 10px 3px 22px; }
+  nav .toc a.h3 { padding-left:34px; }
+  nav .gen { margin-top:16px; font-size:12px; color:var(--muted); padding:0 10px; }
+  main { margin-left:260px; padding:24px 48px 80px; max-width:1200px; }
+  main h1 { border-bottom:1px solid var(--line); padding-bottom:8px; }
+  main h2 { border-bottom:1px solid var(--line); padding-bottom:6px; margin-top:36px; }
+  table { border-collapse:collapse; display:block; overflow:auto; margin:12px 0; }
+  th, td { border:1px solid var(--line); padding:6px 12px; vertical-align:top; }
+  th { background:var(--side); }
+  tr:nth-child(2n) td { background:#fafbfc; }
+  code { background:#eff1f3; padding:2px 5px; border-radius:4px; font-size:13px; }
+  pre { background:#f6f8fa; padding:12px 16px; border-radius:6px; overflow:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin:0; padding:0 16px; color:var(--muted); border-left:4px solid var(--line); }
+  .mermaid { background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px; margin:16px 0; overflow:auto; text-align:center; }
+  .mermaid-error { border-color:#cf222e; text-align:left; }
+  .mermaid-error p { color:#cf222e; margin:0 0 8px; font-size:13px; }
+  @media print { nav { display:none; } main { margin:0; } }
+</style>
+</head>
+<body>
+<nav>
+  <h1>GEO 运营第一版设计</h1>
+  <div id="files"></div>
+  <div class="toc" id="toc"></div>
+  <div class="gen">由 Markdown 源文件生成，以源文件为准。</div>
+</nav>
+<main id="content"></main>
+<script id="docs" type="application/json">[{"name": "01-domain-model-er.md", "title": "GEO 运营服务第一版领域模型与 ER 图", "md": "# GEO 运营服务第一版领域模型与 ER 图\n\n**目的**：定义「GEO 运营」第一版（签约后流程）的对象清单、关系模型与数据字典，作为后续实现的命名基准与设计依据。\n\n**读者**：用户本人作为产品负责人、后续实现的工程师。\n\n**状态**：设计草案，待用户确认。\n\n**版本**：v0.1，2026-11-18。\n\n**范围**：覆盖 D-017 至 D-023 确认的签约后流程：客户与合同 → 客户资料 → 服务、优化标的、问句、竞品名单 → 监测计划 → 采集任务 → 分析 → 看板。\n\n## 1. 对象清单与归属\n\n以下按业务领域分组列出全部对象；技术标识统一加 `GEO ` 前缀（空格）以避免与站点已有 1051 个 DocType（含 Service、Plan、Schedule、Brand、Product、Competitor、Profile、Group 等）冲突。\n\n### 1.1 客户与合同（复用 ERPNext 原生）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 客户 | `Customer` | ERPNext 原生 | 签约主体，包含客户名称、客户组、地区、联系人等基础信息 |\n| 合同 | `Contract` | ERPNext 原生 | 商业约定，关联签约方（party_type/party_name）、合同条款、起止日期、履约清单 |\n\n**复用字段**：\n- Customer：`customer_name`（必填）、`customer_type`（Company/Individual/Partnership）、`customer_group`、`territory`、`account_manager`（可映射为负责销售）、`customer_details`（客户描述）。\n- Contract：`party_type`+`party_name`（签约方，必填）、`start_date`/`end_date`、`contract_terms`（合同条款文本）、`fulfilment_terms`（履约清单子表）、`status`（Unsigned/Active/Inactive/Cancelled）。\n\n**Custom Field 需求**（挂在 Contract 上）：\n- `signing_party`（Link Customer）：签约方客户（冗余 party_name 的客户视角，方便查询）。\n- `paying_party`（Link Customer）：付款方客户。\n- `served_organization`（Link Customer）：被服务组织客户。\n- `report_frequency`（Select）：报告频率（Weekly/Biweekly/Monthly）。\n- `service_term_months`（Int）：服务期月数。\n- `question_quota`（Int）：约定问句数量。\n- `platform_requirements`（Small Text）：平台要求（JSON 或文本）。\n- `top_requirement`（Data）：Top 指标要求（如 \"Top 3 可见\"）。\n\n**理由**：ERPNext Contract 已有签约方、日期、条款、状态管理，复用可减少重复字段并利用原生工作流；多方关系（签约/付款/被服务）通过 Custom Field 分别记录，符合业界实践（D-018）。\n\n### 1.2 组织关系（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 集团关系 | `GEO Organization Group Relation` | GEO 运营 App 新建 | 记录总部-子公司、控股等集团层级关系及有效期 |\n| 渠道关系 | `GEO Organization Channel Relation` | GEO 运营 App 新建 | 记录渠道-终端客户的商业关系及有效期 |\n\n**理由**：集团关系与渠道关系的业务性质、授权依据不同，不能混入同一棵 Customer 父子树；单独表达便于后续扩展代理级别、分成比例等差异字段（D-018）。\n\n### 1.3 服务与团队（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 服务 | `GEO Service` | GEO 运营 App 新建 | 持续履约的业务实例，关联合同、被服务组织、优化标的、负责人与时间线 |\n| 服务成员 | `GEO Service Member` | 子表 | 服务参与人员及角色（销售/运营/负责人），记录加入与退出时间 |\n| 服务暂停记录 | `GEO Service Pause` | GEO 运营 App 新建 | 服务暂停与恢复事件，记录时间、原因、范围（采集继续、内容与投放暂停） |\n\n**理由**：服务是客户合同的执行单元，换词、暂停、团队变更不切断服务历史；成员子表记录销售与运营的参与时段，为后续分成提供事实依据（D-019）。\n\n### 1.4 优化标的与客户资料（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 优化标的 | `GEO Optimization Target` | GEO 运营 App 新建 | 公司、品牌或产品等被优化对象，稳定身份，有名称与别名 |\n| 标的别名 | `GEO Target Alias` | 子表 | 标的的官方名称、俗称、简称等，供可见度匹配使用 |\n| 服务-标的关联 | `GEO Service Target` | 子表（挂在 Service 上） | 某服务关联的一个或多个优化标的 |\n| 客户资料版本 | `GEO Customer Profile Version` | GEO 运营 App 新建 | 客户提供的品牌事实、受众、定位等业务资料，版本化保存 |\n\n**理由**：标的身份稳定、名称可变，别名用于分析匹配；资料版本化便于追溯生成内容与分析时使用的客户输入（D-018、D-019）。\n\n### 1.5 问句与变更（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 问句 | `GEO Question` | GEO 运营 App 新建 | 监测的提示问句主体，稳定身份，关联所属服务 |\n| 问句版本 | `GEO Question Version` | 子表 | 问句的文案版本（原始、修订、翻译等），记录生效时间 |\n| 问句替换 | `GEO Question Replacement` | GEO 运营 App 新建 | 1 换 1 的换词记录，连接旧问句与新问句，记录原因、确认人、生效日期 |\n\n**理由**：问句身份与文案版本分离，支持修订但不丢失历史；替换记录独立，便于追溯换词原因与决策人，避免覆写历史（D-019）。\n\n### 1.6 竞品名单与实体（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 实体 | `GEO Entity` | GEO 运营 App 新建 | 稳定识别公司、品牌、产品，作为目标或竞品的候选池 |\n| 实体别名 | `GEO Entity Alias` | 子表 | 实体的名称、俗称、官方称呼、语言变体等 |\n| 竞品名单 | `GEO Competitor List` | GEO 运营 App 新建 | 某个优化标的的竞品集合版本，关联标的与生效日期 |\n| 竞品名单条目 | `GEO Competitor List Item` | 子表 | 竞品名单中的一个竞品实体及排列顺序（仅为配置顺序，非分析结果） |\n\n**理由**：实体为复用身份池，目标与竞品是其在具体比较场景中的角色；竞品名单版本化，口径变化后历史结果不被覆盖（D-021）。\n\n### 1.7 监测计划与采样配置（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 监测计划 | `GEO Monitoring Plan` | GEO 运营 App 新建 | 关联服务、一组问句、平台与时间规则，定义采集频率与条件 |\n| 计划问句 | `GEO Plan Question` | 子表 | 某计划包含的问句列表 |\n| 采样配置 | `GEO Sampling Config` | GEO 运营 App 新建 | 可扩展的平台采样条件（平台、端、开关组合），供计划引用 |\n| 采样条件参数 | `GEO Sampling Parameter` | 子表 | 配置的参数明细（如 platform=DeepSeek, product=APP, chat_work=Chat, network=On） |\n\n**理由**：频率挂计划，一个问句可加入多个计划；采样配置独立且可扩展，新平台或新开关只需增加参数行，不改表结构；计划与实际执行分离，便于审计漏采与多采（D-020）。\n\n### 1.8 采集任务与结果（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 采集任务 | `GEO Collection Task` | GEO 运营 App 新建 | 系统按去重键（问句+配置+时间窗口）生成的唯一采集任务，供外部采集程序拉取 |\n| 计划-任务关联 | `GEO Plan Task Link` | 子表（挂在 Task 上） | 多个计划共享同一任务的关联记录 |\n| 采集结果 | `GEO Collection Result` | GEO 运营 App 新建 | 一次采集的原始回答、信源、时间、分享链接与截图 |\n\n**理由**：多计划共享任务，系统削峰填谷；任务是调度单元，结果是实际证据；去重键保证同一时间窗口内同一问句+配置只采一次（D-020）。\n\n### 1.9 信源与链接检查（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 信源 | `GEO Source` | GEO 运营 App 新建 | 文章、视频、商品卡片等内容对象，按 URL 去重，全局唯一 |\n| 信源引用 | `GEO Source Citation` | GEO 运营 App 新建 | 某次回答引用某信源的记录，按客户隔离，记录 AI 给出链接与跳转后链接 |\n| 链接检查记录 | `GEO Link Check` | GEO 运营 App 新建 | 链接可访问性检查的时间、状态（HTTP 码、超时、404）与失效时间 |\n\n**理由**：信源全局去重，引用按客户隔离；链接检查独立记录，失效不删除引用事实；AI 链接与跳转后链接分开，便于追溯 404 原因（D-022）。\n\n\n### 1.10 分析方法与运行（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 分析方法版本 | `GEO Analysis Method` | GEO 运营 App 新建 | 定义分析口径、模型、参数、提示模板，版本化保存 |\n| 分析运行 | `GEO Analysis Run` | GEO 运营 App 新建 | 一次分析执行，记录输入快照（结果ID、竞品名单版本、别名版本、方法版本）与时间 |\n| 实体分析结果 | `GEO Entity Analysis Result` | GEO 运营 App 新建 | 某次回答中某实体的出现、排名、可见度，关联分析运行 |\n| 聚合指标 | `GEO Aggregated Metric` | GEO 运营 App 新建 | 问句/计划/服务层级的汇总指标（Top 达标率、可见度百分比等） |\n\n**理由**：分析方法版本化，口径参数化；分析运行记录输入快照，不可覆盖；重算产生新运行，历史结果保留；符合业界不可变事件溯源实践（D-021）。\n\n### 1.11 问句分组与回链（GEO 运营 App 新建）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 问句分组 | `GEO Question Group` | GEO 运营 App 新建 | 用户定义的问句标签或分组，用于看板聚合视图 |\n| 分组问句 | `GEO Group Question` | 子表 | 某分组包含的问句 |\n| 回链导入记录 | `GEO Backlink Import` | GEO 运营 App 新建 | 导入给客户发布的文章与链接的批次记录，只做查询不做投放 |\n| 回链条目 | `GEO Backlink Item` | 子表 | 具体回链明细（客户、文章标题、URL、发布时间） |\n\n**理由（设计推荐-Agent）**：问句分组独立于监测计划，是看板侧的展示组织方式，一个问句可属于多个分组；监测计划管调度，分组管展示，职责分离。回链只导入不投放，满足 D-017 预留需求。\n\n**待确认**：问句分组与监测计划是否需合并为同一对象？当前设计分离的理由是：计划有时间规则与采样配置，分组仅为逻辑标签，合并会导致\"只为看板聚合的分组也要配置采样参数\"的冗余。\n\n### 1.12 权限与角色（复用 Frappe 原生 + 新建角色）\n\n| 对象中文名 | DocType 名称 | 归属 | 职责 |\n|---|---|---|---|\n| 用户 | `User` | Frappe 原生 | 系统登录账号 |\n| 角色 | `Role` | Frappe 原生 | 权限角色（通过 Frappe Role 定义） |\n\n**新建角色**（通过 Frappe Role 配置，非新建 DocType）：\n- `GEO Operations`：运营，看自己负责或参与的服务。\n- `GEO Sales`：销售，看自己客户的服务（只读为主）。\n- `GEO Admin`：管理员，看全部服务。\n- `GEO Collector`：采集程序的机器账号角色，只能拉取任务与回传结果。\n\n**理由**：复用 Frappe 用户与角色体系，通过 DocType Permission 配置服务级授权；按客户授权通过服务成员表与 Permission Query 实现（D-023）。\n\n---\n\n## 2. 完整 Mermaid ER 图\n\n以下 ER 图覆盖全部对象及基数关系。\n\n```mermaid\nerDiagram\n    %% 客户与合同\n    Customer ||--o{ Contract : \"signs/pays/served\"\n    Contract ||--o{ GEO_Service : \"governs\"\n    \n    %% 组织关系\n    Customer ||--o{ GEO_Organization_Group_Relation : \"parent/subsidiary\"\n    Customer ||--o{ GEO_Organization_Channel_Relation : \"channel/end-customer\"\n    \n    %% 服务与团队\n    GEO_Service ||--|{ GEO_Service_Member : \"has members\"\n    GEO_Service ||--o{ GEO_Service_Pause : \"pause events\"\n    GEO_Service ||--|{ GEO_Service_Target : \"optimizes targets\"\n    GEO_Service ||--o{ GEO_Customer_Profile_Version : \"uses profile\"\n    GEO_Service ||--o{ GEO_Monitoring_Plan : \"has plans\"\n    \n    %% 优化标的\n    GEO_Optimization_Target ||--|{ GEO_Target_Alias : \"has aliases\"\n    GEO_Optimization_Target ||--o{ GEO_Service_Target : \"served by\"\n    GEO_Optimization_Target ||--o{ GEO_Competitor_List : \"has competitor lists\"\n    \n    %% 实体与竞品名单\n    GEO_Entity ||--|{ GEO_Entity_Alias : \"has aliases\"\n    GEO_Competitor_List ||--|{ GEO_Competitor_List_Item : \"contains entities\"\n    GEO_Entity ||--o{ GEO_Competitor_List_Item : \"listed as competitor\"\n    GEO_Entity ||--o{ GEO_Entity_Analysis_Result : \"analyzed in results\"\n    \n    %% 问句\n    GEO_Service ||--o{ GEO_Question : \"owns questions\"\n    GEO_Question ||--|{ GEO_Question_Version : \"has versions\"\n    GEO_Question ||--o{ GEO_Question_Replacement : \"old question\"\n    GEO_Question ||--o{ GEO_Question_Replacement : \"new question\"\n    GEO_Question ||--o{ GEO_Plan_Question : \"in plans\"\n    GEO_Question ||--o{ GEO_Group_Question : \"in groups\"\n    \n    %% 问句分组\n    GEO_Question_Group ||--|{ GEO_Group_Question : \"contains questions\"\n    \n    %% 监测计划与采样配置\n    GEO_Monitoring_Plan ||--|{ GEO_Plan_Question : \"monitors questions\"\n    GEO_Monitoring_Plan }o--|| GEO_Sampling_Config : \"uses config\"\n    GEO_Sampling_Config ||--|{ GEO_Sampling_Parameter : \"has parameters\"\n    \n    %% 采集任务\n    GEO_Monitoring_Plan ||--o{ GEO_Plan_Task_Link : \"generates tasks\"\n    GEO_Collection_Task ||--|{ GEO_Plan_Task_Link : \"shared by plans\"\n    GEO_Collection_Task }o--|| GEO_Question : \"collects for\"\n    GEO_Collection_Task }o--|| GEO_Sampling_Config : \"uses config\"\n    GEO_Collection_Task ||--o{ GEO_Collection_Result : \"produces results\"\n    \n    %% 信源与引用\n    GEO_Collection_Result ||--o{ GEO_Source_Citation : \"cites sources\"\n    GEO_Source ||--o{ GEO_Source_Citation : \"cited in results\"\n    GEO_Source ||--o{ GEO_Link_Check : \"checked at times\"\n    \n    %% 分析\n    GEO_Analysis_Method ||--o{ GEO_Analysis_Run : \"used in runs\"\n    GEO_Collection_Result ||--o{ GEO_Analysis_Run : \"analyzed by\"\n    GEO_Competitor_List ||--o{ GEO_Analysis_Run : \"used in runs\"\n    GEO_Analysis_Run ||--o{ GEO_Entity_Analysis_Result : \"produces results\"\n    \n    %% 聚合指标\n    GEO_Analysis_Run ||--o{ GEO_Aggregated_Metric : \"aggregates to\"\n    GEO_Question ||--o{ GEO_Aggregated_Metric : \"metrics for\"\n    GEO_Monitoring_Plan ||--o{ GEO_Aggregated_Metric : \"metrics for\"\n    GEO_Service ||--o{ GEO_Aggregated_Metric : \"metrics for\"\n    \n    %% 回链\n    GEO_Service ||--o{ GEO_Backlink_Import : \"imports backlinks\"\n    GEO_Backlink_Import ||--|{ GEO_Backlink_Item : \"contains items\"\n    \n    %% 关键字段标注\n    Customer {\n        string customer_name PK\n        string customer_type\n        string customer_group\n        string account_manager\n    }\n    \n    Contract {\n        string name PK\n        string party_type\n        string party_name FK\n        date start_date\n        date end_date\n        string status\n        string custom_signing_party \"Custom-Link-Customer\"\n        string custom_paying_party \"Custom-Link-Customer\"\n        string custom_served_organization \"Custom-Link-Customer\"\n        int custom_question_quota \"Custom-Int\"\n        string custom_platform_requirements \"Custom-SmallText\"\n        string custom_top_requirement \"Custom-Data\"\n        string custom_report_frequency \"Custom-Select\"\n        int custom_service_term_months \"Custom-Int\"\n    }\n    \n    GEO_Service {\n        string name PK\n        string contract FK\n        string served_organization FK\n        string status\n        date start_date\n        string responsible_user FK\n    }\n    \n    GEO_Optimization_Target {\n        string name PK\n        string target_type \"Select:Company|Brand|Product\"\n        string primary_name \"Data\"\n    }\n    \n    GEO_Entity {\n        string name PK\n        string entity_type \"Select:Company|Brand|Product\"\n        string canonical_name \"Data-required\"\n    }\n    \n    GEO_Question {\n        string name PK\n        string service FK-required\n        string current_version_text \"Text\"\n        string status \"Select:Active|Replaced|Paused\"\n        date effective_from\n    }\n    \n    GEO_Collection_Task {\n        string name PK\n        string dedup_key \"Data-unique\"\n        string question FK\n        string sampling_config FK\n        datetime time_window_start\n        datetime time_window_end\n        datetime scheduled_time\n        string status \"Select:Pending|Running|Completed|Failed\"\n    }\n    \n    GEO_Collection_Result {\n        string name PK\n        string task FK-required\n        text ai_response \"LongText-required\"\n        string share_link \"Data\"\n        string screenshot_attachment \"AttachImage\"\n        datetime collected_at \"Datetime-required\"\n        string collector_identity \"Data\"\n    }\n    \n    GEO_Source {\n        string name PK\n        string url_normalized \"Data-unique-required\"\n        string url_original \"Data\"\n        string source_type \"Select:Article|Video|Product|Other\"\n        string platform \"Data\"\n    }\n    \n    GEO_Source_Citation {\n        string name PK\n        string result FK-required\n        string source FK-required\n        string isolated_customer FK-required\n        string ai_link_original \"Data\"\n        string redirected_link \"Data\"\n        int citation_order \"Int\"\n    }\n    \n    GEO_Analysis_Run {\n        string name PK\n        string method FK-required\n        string competitor_list_version FK\n        json input_snapshot \"LongText-JSON\"\n        datetime run_at \"Datetime-required\"\n        string run_by \"Link-User\"\n    }\n    \n    GEO_Entity_Analysis_Result {\n        string name PK\n        string analysis_run FK-required\n        string entity FK-required\n        string collection_result FK-required\n        int rank_position \"Int-nullable\"\n        string visibility \"Select:Visible|NotMentioned|Refused|Error\"\n    }\n```\n\n---\n\n## 3. 数据字典\n\n以下列出关键对象的核心字段；每个字段格式为：`字段名 | 类型 | 必填 | 说明 | 约束/唯一键`。\n\n"}]</script>
+<script>
+  const docs = JSON.parse(document.getElementById('docs').textContent);
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'default' });
+
+  const renderer = new marked.Renderer();
+  const baseCode = renderer.code.bind(renderer);
+  renderer.code = function (token) {
+    const text = typeof token === 'object' ? token.text : token;
+    const lang = typeof token === 'object' ? token.lang : arguments[1];
+    if ((lang || '').trim() === 'mermaid') {
+      const div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = text;
+      return div.outerHTML;
+    }
+    return baseCode.apply(this, arguments);
+  };
+  marked.setOptions({ renderer, gfm: true });
+
+  const filesEl = document.getElementById('files');
+  const tocEl = document.getElementById('toc');
+  const contentEl = document.getElementById('content');
+
+  function slug(s, i) { return 'h-' + i + '-' + s.replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, ''); }
+
+  async function show(idx) {
+    const doc = docs[idx];
+    contentEl.innerHTML = marked.parse(doc.md);
+    // 文档间相对链接改为页内切换
+    contentEl.querySelectorAll('a[href]').forEach(a => {
+      const name = a.getAttribute('href').split('#')[0].split('/').pop();
+      const target = docs.findIndex(d => d.name === name);
+      if (target >= 0) a.addEventListener('click', e => { e.preventDefault(); location.hash = docs[target].name; });
+    });
+    tocEl.innerHTML = '';
+    contentEl.querySelectorAll('h2, h3').forEach((h, i) => {
+      h.id = slug(h.textContent, i);
+      const a = document.createElement('a');
+      a.href = '#' + doc.name + '::' + h.id;
+      a.textContent = h.textContent;
+      a.className = h.tagName.toLowerCase();
+      a.addEventListener('click', e => { e.preventDefault(); h.scrollIntoView(); });
+      tocEl.appendChild(a);
+    });
+    filesEl.querySelectorAll('a').forEach((a, i) => a.classList.toggle('active', i === idx));
+    window.scrollTo(0, 0);
+    const blocks = [...contentEl.querySelectorAll('.mermaid')];
+    for (let i = 0; i < blocks.length; i++) {
+      const el = blocks[i];
+      const src = el.textContent;
+      try {
+        const { svg } = await mermaid.render('m' + idx + '-' + i, src);
+        el.innerHTML = svg;
+      } catch (err) {
+        el.classList.add('mermaid-error');
+        el.innerHTML = '';
+        const p = document.createElement('p');
+        p.textContent = '这张图渲染失败：' + (err.message || err);
+        const pre = document.createElement('pre');
+        pre.textContent = src;
+        el.append(p, pre);
+      }
+    }
+  }
+
+  docs.forEach((d, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + d.name;
+    a.textContent = d.title;
+    filesEl.appendChild(a);
+  });
+
+  function route() {
+    const name = decodeURIComponent(location.hash.slice(1)).split('::')[0];
+    const idx = Math.max(0, docs.findIndex(d => d.name === name));
+    show(idx);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+</script>
+</body>
+</html>
