@@ -1,5 +1,7 @@
 # Environment Variables
 .env
+.DS_Store
+*.egg-info/
 
 # mounted volume
 sites
