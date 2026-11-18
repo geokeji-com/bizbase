@@ -4,16 +4,17 @@
 
 ## 1. 先读：当前停在哪里
 
-**最新用户指令是 D-013：在原预览中安装官方 Frappe HR，已完成安装和基础验证。** D-012 的目录实现撤回及原环境保留仍有效。安装与恢复说明见 [本地预览](../../deploy/local-crm/README.md)。
+**最新用户指令是 D-014：在原站点创建空 BizBase App，关联后续 Build 开发，分批提交并推送 GitHub。空 App 已安装并完成基础验证。** D-012 的目录实现撤回及原环境保留仍有效。安装与恢复说明见 [本地预览](../../deploy/local-crm/README.md)。
 
-- HR 入口：<http://127.0.0.1:8080/desk/hr-setup>；镜像 `bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1`。员工与薪资等业务设置尚未配置。
+- HR 入口：<http://127.0.0.1:8080/desk/hr-setup>；镜像 `bizbase/local:0.0.1`。员工与薪资等业务设置尚未配置。
 - 原入口：<http://127.0.0.1:8080/desk/build>；Compose 项目 `bizbase`，站点 `frontend`。
-- 原环境保留 Frappe 16.56.0、ERPNext 16.55.0、Frappe CRM 16.0.4，并增加 Frappe HR 16.54.1；当前没有安装自研 BizBase App。原账号、权限、业务数据与已有配置保留。
+- 原环境保留 Frappe 16.56.0、ERPNext 16.55.0、Frappe CRM 16.0.4，并增加 Frappe HR 16.54.1；新增自研 BizBase 0.0.1 空 App，源码在 `apps/bizbase`，没有业务 DocType。原账号、权限、业务数据与已有配置保留。
 - 新项目 `bizbase-r01` 的 8 个容器、5 个数据卷、专属网络和 5 个目录镜像已删除；8081、8082 已停止提供本轮服务。
 - 撤回提交 `1ff9276` 已推送 `origin/main`；只撤回两个实现提交 `8e5afa8`、`61f0c0c`，保留规划、研究和 Git 历史。详见 [withdrawal.md](rounds/01/withdrawal.md)。
 - 自研客户目录页面、API、原型、部署/测试脚本及目录 CI 已从当前工作树移除；历史版本标签不表示当前可用版本。
-- 原站点 Build 已用现有登录会话实际打开，可见文档类型、定制表单、报表等入口。没有安装 BizBase App，不等于原站点没有用户自行创建的 DocType、模块或工作区；后续先盘点和保留。
-- 交接时再次确认原 `bizbase` 容器运行、新项目无容器。删除前后原 11 个容器 ID、镜像和挂载相同；完整核验记录见上面的撤回记录。
+- 原站点 Build 已用现有登录会话实际打开，新建 DocType 的模块候选包含 BizBase，Custom 默认为未勾选。应用首页可见 BizBase，空工作区入口 `/desk/bizbase`，当前限 System Manager。
+- App 目录已绑定到应用容器，本站点 `developer_mode=1`。已通过保存标准工作区验证文件回写到仓库；其他站点配置需按类型导出，不自动提交 Git。
+- D-012 撤回时原容器保持不变是历史记录；D-013、D-014 已更新应用镜像并重建应用进程。D-014 核验数据库和 Redis 容器 ID 未变，原数据卷保留。
 
 **轮次状态：第 01 轮实现已撤回，尚未开始下一轮。** `STATUS.md` 和旧 release/review 的门禁通过属于历史证据；不是当前产品完成状态或继续执行授权。`docs/agents/ratchet.md` 的 `test_cmd` 已留空，避免误运行已删除脚本或沿用旧验收发布。
 
@@ -52,8 +53,9 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 | D-007—D-009 | 目录最小模型、显式客户授权、真实历史快照曾获确认；具体实现已被 D-012 撤回，不能当成当前站点已有能力或自动重建依据。 |
 | D-010 | Agent 选择的独立验收环境路线，已被 D-012 覆盖。 |
 | D-011 | 用户允许第 01 轮无需中途确认自主完成；已被 D-012 终止，不外推成以后所有轮次的授权。 |
-| D-012 | 最新指令：撤回实现、删除新实例、回到原 8080 Build。目录撤回和原环境保留的基线。 |
+| D-012 | 撤回决定：撤回实现、删除新实例、回到原 8080 Build。目录撤回和原环境保留的基线。 |
 | D-013 | 在原站点增加官方 HR，已安装 16.54.1；本地预览范围，不扩展到生产和业务制度配置。 |
+| D-014 | 原站点安装空 BizBase App；持久化源码和开发模式支持 Build；按主题提交、推送项目变更。没有恢复旧目录业务实现。 |
 
 完整 GEO 表结构、全公司权威写入归属、主库迁移、旧系统退役、实时接口、SSO、对客权限及生产部署仍需对应证据与范围。已认可整体规划不代表所有候选对象必须建表。
 
@@ -61,8 +63,8 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 
 - **Build**：Frappe 自带的构建工作区，入口 `/desk/build`。可进入 DocType、表单定制、报表、工作区和脚本等原生工具；不是独立安装的业务 App，也不是 Frappe Builder 建站产品。
 - **Site**：一套站点及数据库/配置/用户。多个 App 可装在同一 site；并非每个 App 都要单独建 site。共享数据库不代表不同 App 的业务对象已合并，也不代表所有用户共享访问权。
-- **App**：版本化功能包，可保存标准 DocType 定义、配置、代码和迁移。Build 与代码可以配合；本次用户选择先回原环境使用 Build，不由此推导立即重新建立 App 或新实例。
-- **配置持久化**：站点自定义记录与开发模式下导出到 App 的标准定义有不同发布方式；使用前按当前模式核对备份/导出，不把所有界面修改说成自动进入 Git。当前未改变原站点开发模式。
+- **App**：版本化功能包，可保存标准 DocType 定义、配置、代码和迁移。Build 与代码可以配合；D-014 已在原站点安装空 App，Build 继续作为开发入口，不新建实例。
+- **配置持久化**：站点自定义记录与开发模式下导出到 App 的标准定义有不同发布方式；使用前按当前模式核对备份/导出，不把所有界面修改说成自动进入 Git。D-014 已启用本站点开发模式并挂载 App 源码；具体操作见 App README。
 - **API**：Frappe/ERPNext/CRM 已有原生 API，无须把已有能力全部重写。外部独立项目可以通过 API 使用本站点；公司特有业务契约或跨对象规则再扩展。认证、角色与具体客户/服务授权分别验证，自定义 API 本身不天然安全，原生入口也需符合约定边界。
 - **两套 CRM**：ERPNext CRM 与独立 Frappe CRM 使用不同业务记录；同 site 不会自动混成一张线索表，配置集成才会产生关联/同步。隐藏菜单只是界面取舍，不等于卸载模块、释放其全部资源或完成数据治理。原 ERPNext CRM 未因本次撤回被拆除。
 
@@ -73,7 +75,7 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 | 目标与整体规划 | [natural-plan.md](../planning/natural-plan.md)、[opportunities.md](../planning/opportunities.md)、[delivery-map.md](../planning/delivery-map.md)。已认可方向；机会清单并非全部实施承诺。 |
 | 完整业务与 SOP 综合模型 | [geo-service-model.md](../business/2026-11-17-geo-service-model.md)、[bizbase-overall-plan.md](../business/2026-11-17-bizbase-overall-plan.md)。事实与建模建议分开；旧“现在自研 App”的建议服从 D-012。 |
 | 13 项官方应用及理由 | [app-selection.md](../business/2026-11-17-bizbase-positioning-and-app-selection.md)。13 项包含框架，不是全部都装。历史建议保留三项；D-013 后现有四项（新增 HR）；Insights 按真实报表问题试评，其余按需求。新安装前重核版本、维护状态和组合兼容性。 |
-| 框架、ERP/CRM 能力边界 | `docs/research/2026-11-17-frappe-platform-boundary.md`、`docs/research/2026-11-17-business-apps-boundary.md`；目前为本机未跟踪研究文件，完整清单见下一节。 |
+| 框架、ERP/CRM 能力边界 | `docs/research/2026-11-17-frappe-platform-boundary.md`、`docs/research/2026-11-17-business-apps-boundary.md`；已随本次分批提交纳入 Git。 |
 | 国内外厂商研究 | [海外流程](../research/2026-11-17-geo-vendor-workflows.md)、[国内证据](../research/2026-11-17-geo-china-evidence.md)。公开事实/营销自述/推断分开，同名指标不自动同义。 |
 | SOP 歧义、样本和权限证据 | [evidence.md](evidence.md)，尤其 E-02、E-03、E-07、E-09。目录样本来自 2026-11-02 历史记录，不是当前在服/合同或生产权限。 |
 | 撤回与工程教训 | [withdrawal.md](rounds/01/withdrawal.md)、[lessons.md](lessons.md)，重点 L-003（Build/Builder）、L-006（同步新旧方向）、L-020（校准原生入口）。 |
@@ -89,27 +91,13 @@ BizBase 是公司共同的数据、权限和基本业务能力底座。GEO 是�
 
 仓库 `geokeji-com/bizbase` 源于 `frappe/frappe_docker`，当前分支 `main`。本机项目位置为 `~/workspace/aij@liuchenglu.com/bizbase`。原预览由 `pwd.yml` 与 `deploy/local-crm/compose.override.yaml` 组成；当前正常运行，不需要为了接手重建。
 
-本次整理前保留了以下 9 个未提交研究文件，交接提交不包含它们；同一工作区的新会话可以读取，换机器/重新克隆则不能假设它们存在：
+D-014 将此前 HR 部署配置、9 份项目/研究文档变更和空 App 按主题纳入提交。`.DS_Store` 已忽略；数据库、附件、站点配置与私有备份不进入 Git。实时状态仍以 `git status` 为准。
 
-| Git 状态 | 路径 |
-|---|---|
-| 已跟踪、修改未提交 | `docs/bizbase.md` |
-| 已跟踪、修改未提交 | `docs/research/2026-11-17-frappe-apps-assessment.md` |
-| 已跟踪、修改未提交 | `docs/research/2026-11-17-geo-domain-model-candidate.md` |
-| 已跟踪、修改未提交 | `docs/research/README.md` |
-| 未跟踪 | `docs/research/2026-11-17-apps-collaboration-recheck.md` |
-| 未跟踪 | `docs/research/2026-11-17-apps-data-support-recheck.md` |
-| 未跟踪 | `docs/research/2026-11-17-apps-suite-catalog-recheck.md` |
-| 未跟踪 | `docs/research/2026-11-17-business-apps-boundary.md` |
-| 未跟踪 | `docs/research/2026-11-17-frappe-platform-boundary.md` |
-
-D-013 另新增 `Containerfile.hr`、`nginx.conf.template`，修改原覆盖配置和 README，以及本交接和 decisions；以实时 Git 状态为准。
-
-保留这些工作区内容，提交时按文件选择。原预览的容器和卷与已删除实验分属不同项目；其他仓库的 Docker 资源也在同一机器，操作按项目标签限定范围。
+后续仍保留其他会话的工作区内容，提交时按文件选择。原预览的容器和卷与已删除实验分属不同项目；其他仓库的 Docker 资源也在同一机器，操作按项目标签限定范围。
 
 ## 8. 新会话如何开始
 
-1. 先读本文件和 D-012、撤回记录；理解“回到原 Build”是已完成状态，不重做撤回，也不从旧 R01 脚本恢复。
+1. 先读本文件及 D-014，并保留 D-012 撤回记录的边界；理解“回到原 Build”是已完成状态，不重做撤回，也不从旧 R01 脚本恢复。
 2. 执行下面的只读核验，完成条件是确认分支、工作树、原站点 App、原容器及新实例不存在；若与本文不符，先报告实际差异。
 3. 按用户接下来指定的工作，在原 8080 Build 查看已有 DocType、模块、工作区和表单；先说明当前能力及具体缺口，优先用原生配置完成。尚未指定下一个业务对象时，不能把旧目录实验当成默认任务。
 4. 新的业务模型、配置或代码动作以新的具体范围推进。整体 Why/成果不重做，保留已有研究；需要代码时再说明 Build 配置与代码的分工及持久化方式。
@@ -125,4 +113,4 @@ rtk proxy docker exec bizbase-backend-1 bench --site frontend list-apps
 
 沟通和文档用简体中文，技术标识保留英文。第三方编码/配置先查 Context7；最近查询因额度耗尽失败时，使用了本机对应版本源码，不应声称取得了未查询的文档。生产界面使用真实数据和准确空状态，演示数据与正式路由隔离。用户希望已授权的必要动作直接完成，遇到需要用户决定的具体新范围再提出问题。
 
-给新会话的恢复句：**“请先读取 docs/cycle/HANDOFF.md，按 D-012 核对原 8080 Build 的当前状态，保留已撤回实验的历史边界；接下来我会说明要配置的内容。”**
+给新会话的恢复句：**“请先读取 docs/cycle/HANDOFF.md，按 D-014 核对原站点的空 BizBase App、源码挂载和 Build 开发模式；保留 D-012 已撤回目录实验的历史边界，接下来我会说明要配置的内容。”**

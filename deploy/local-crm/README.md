@@ -1,4 +1,4 @@
-# 本地 ERPNext + Frappe CRM + Frappe HR 预览
+# 本地 BizBase + ERPNext + Frappe CRM + Frappe HR 预览
 
 本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM 和 Frappe HR，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
 
@@ -12,7 +12,8 @@
 | CRM 提交 | `9ace234fceb3c5e7bd630b74f44ba1779e831abe` |
 | Frappe HR | 16.54.1 |
 | HR 提交 | `a01032350ba1b799345b862cb122fa408bf6780e` |
-| 当前运行镜像 | `bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1` |
+| BizBase | 0.0.1，空 App |
+| 当前运行镜像 | `bizbase/local:0.0.1` |
 
 基础镜像摘要固定在 `Containerfile` 中。CRM 的该版本声明支持 Frappe `>=16.0.0,<17.0.0`；不使用 `develop` 分支。
 
@@ -44,13 +45,24 @@ HR 此版本要求 Frappe、ERPNext `>=16.50.0,<17.0.0`，当前组合满足。�
 
 ## 启动与访问
 
-**安装 CRM / HR 后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为不包含 CRM / HR 代码的上游镜像。**
+在上述 HR 镜像基础上构建 BizBase 镜像（构建上下文仅包含 App 源码）：
+
+```bash
+rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.bizbase \
+  -t bizbase/local:0.0.1 apps/bizbase
+```
+
+覆盖配置将仓库 `apps/bizbase` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
+
+**安装 CRM / HR / BizBase 后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为缺少这些 App 代码的上游镜像。此覆盖文件用于本机开发，不作为生产发布配置。**
 
 ```bash
 docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml up -d
 ```
 
 - Frappe HR：<http://127.0.0.1:8080/desk/hr-setup>
+- BizBase 空工作区：<http://127.0.0.1:8080/desk/bizbase>
+- Build：<http://127.0.0.1:8080/desk/build>
 - 独立 CRM：<http://localhost:8080/crm>
 - ERPNext：<http://localhost:8080/desk>
 - ERPNext 原有 CRM：<http://localhost:8080/desk/crm>
@@ -115,3 +127,31 @@ docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml l
 恢复安装前状态必须同时恢复安装前数据库、站点配置、公私附件，再切回 `bizbase/erpnext-crm:16.55.0-16.0.4`；保留原数据库和站点卷，不使用 `down -v`。当前无恢复需要。
 
 员工数据、假期政策、审批角色、薪资及国内税社保规则尚未配置；官方界面部分文案仍为英文。本次仅安装并验证基础可用性。
+
+## 空 BizBase App 与 Build（2026-11-18，D-014）
+
+沿用原 `bizbase` Compose 项目、`frontend` 站点及数据卷。App 源码见 [apps/bizbase](../../apps/bizbase/README.md)，仅提供 `BizBase` 标准模块和空工作区；不包含已撤回的客户目录实现，不接入生产。
+
+首次安装：先按上文完成备份并停止 scheduler/worker，再切换应用镜像；无需重建数据库或 Redis。执行：
+
+```bash
+rtk proxy docker exec bizbase-backend-1 bench --site frontend install-app bizbase
+rtk proxy docker exec bizbase-backend-1 bench --site frontend migrate
+rtk proxy docker exec bizbase-backend-1 bench --site frontend set-config developer_mode 1
+rtk proxy docker exec bizbase-backend-1 bench --site frontend clear-cache
+```
+
+随后重启后端、WebSocket，关闭维护模式并启动 scheduler/worker。开发模式仅设在本站点配置中，不修改镜像的全局默认。不要把本配置用于对外生产站点。
+
+在 Build 新建 DocType 时，确认 `Custom` 未勾选并选择 `BizBase` 模块，标准定义才会进入仓库的 App 目录。站点级自定义配置需明确选择导出方式，详见 App README。源码变更需要检查、提交、推送，界面保存不等于自动提交 Git。
+
+安装前的私有备份、数据摘要及验证记录位于 `/Users/aij/.codex/private/bizbase-empty-app-20261118/`，不进入 Git。恢复时须使用同一检查点的数据库、配置与附件，并恢复本次安装前的 HR 镜像及覆盖配置；不可只切回镜像。未进行恢复演练。
+
+本次验证结果：
+
+- `list-apps` 包含 `bizbase 0.0.1` 和原四个 App；迁移、`pip check`、`bench doctor` 通过，两个 worker 在线，维护模式已关闭。
+- 保存标准工作区成功写回本机 `apps/bizbase/bizbase/bizbase/workspace/bizbase/bizbase.json`。重新创建应用容器后，App 可加载、开发模式保留、源码挂载可写、图标 HTTP 200、ping 返回 pong。
+- 浏览器现有登录会话验证应用首页的 BizBase 入口、空工作区，以及 Build 新建 DocType 弹窗中的 BizBase 模块候选；未提交测试 DocType。App 中业务 DocType 为 0。
+- 原用户 3、公司 1、联系人 1；客户、ERP/CRM 线索与商机、销售订单、项目、员工仍为 0。58 个 Custom Field 和 197 个 Property Setter 的完整记录摘要保持不变；数据库和 Redis 容器 ID 未变。
+- 空工作区和 App 入口限 System Manager；已检查 Administrator 可见、Guest 不可见。后续业务数据权限尚未配置或验收。
+- 原 HR 备份子目录 `sites/frontend/private/backups/pre-hr-20261118` 导致 Frappe 备份清理函数报 `IsADirectoryError`。已保留并移到 `sites/frontend/private/pre-hr-20261118`；新备份成功复制到宿主机私有目录并验证 gzip/tar/JSON 可读性。

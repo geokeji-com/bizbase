@@ -1,0 +1,10 @@
+# 构建上下文为 apps/bizbase；先按 Containerfile.hr 构建现有 HR 基础镜像。
+FROM bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1
+
+LABEL org.opencontainers.image.title="BizBase 本地开发预览"
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:frappe . apps/bizbase
+RUN env/bin/pip install --no-cache-dir --no-deps -e apps/bizbase \
+    && env/bin/pip check \
+    && ln -s /home/frappe/frappe-bench/apps/bizbase/bizbase/public assets/bizbase

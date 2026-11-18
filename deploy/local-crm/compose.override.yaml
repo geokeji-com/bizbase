@@ -1,7 +1,13 @@
 # 与项目根目录 pwd.yml 一起使用，复用 bizbase 现有数据库和站点卷。
 x-crm-image: &crm-image
-  image: bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1
+  image: bizbase/local:0.0.1
   pull_policy: never
+  volumes:
+    - type: bind
+      source: ./apps/bizbase
+      target: /home/frappe/frappe-bench/apps/bizbase
+      bind:
+        create_host_path: false
 
 services:
   backend:
@@ -10,6 +16,7 @@ services:
     <<: *crm-image
     volumes:
       - ./deploy/local-crm/nginx.conf.template:/templates/nginx/frappe.conf.template:ro
+      - ./apps/bizbase:/home/frappe/frappe-bench/apps/bizbase:ro
   configurator:
     <<: *crm-image
   create-site:

@@ -1,4 +1,7 @@
+<!-- ratchet: kind=brief status=review -->
 # BizBase · 业务基础平台
+
+循环接入说明（2026-11-18）：[整体自然式规划](planning/natural-plan.md)及两项取舍已经用户确认，见 D-003、D-004 和[已应用清单 2](cycle/sheets/decision-sheet-02.md)；按 D-005，该规划作为当前 brief。以下保留前期定位及建议，未逐项接受的模型和数据归属仍是候选。历史实现、调研和口述均为可修正证据。
 
 BizBase 是公司的业务基础平台，提供共享数据、通用能力和基础业务应用，支持在平台内开发应用，也支持独立系统通过 API 接入。
 
@@ -11,7 +14,11 @@ BizBase 是公司的业务基础平台，提供共享数据、通用能力和基
 - 向业务应用提供一致的数据访问、权限和基本业务能力。
 - ERPNext 和独立 CRM 是平台中的业务应用；安装应用本身不等于完成统一数据与权限底座。
 
-术语见 [项目词汇表](../GLOSSARY.md)。具体业务模型、数据归属、首批接入系统和接口边界仍待梳理，以上目标不代表这些实现方案已经确定。
+术语见 [项目词汇表](../GLOSSARY.md)。[早期整体方案](business/2026-11-17-bizbase-overall-plan.md)形成于组织仓库盘点前，保留当时的数据归属和分期建议，不作为已确认裁决。当前推进入口见[首轮整体规划](planning/natural-plan.md)及[证据清单](cycle/evidence.md)。[业务梳理与候选模型](business/2026-11-17-geo-service-model.md)仍需以真实样例收敛；尚未实施。
+
+[受控目录最小模型](business/directory-model.md)、[模型图](business/directory-model-views.md)和[清单 3](cycle/sheets/decision-sheet-03.md)曾按 D-007—D-009 获确认，相关目录实现已由 D-012 撤回。D-014 仅授权在原站点创建空 BizBase App，供后续 Build 配置使用，不恢复旧目录实现。
+
+[项目定位与官方应用选择](business/2026-11-17-bizbase-positioning-and-app-selection.md)根据完整业务与 SOP 重新评估原 13 项候选：保留 Frappe、ERPNext、CRM，其中自研 BizBase App 的具体范围现以 D-014 的空壳为准；Insights 后续优先试评，其余按真实需求引入。原生 ERP/CRM API 继续复用，BizBase 补充共同业务规则和 GEO 能力。
 
 ## 项目来源
 
@@ -29,7 +36,7 @@ BizBase 是公司的业务基础平台，提供共享数据、通用能力和基
 
 ## 当前状态
 
-已完成官方部署仓库 fork、项目重命名及框架大版本决策。本地预览使用 Frappe 16.56.0、ERPNext 16.55.0，并通过自定义镜像增加独立 Frappe CRM 16.0.4；启动方式与维护说明见 [本地 CRM 部署文档](../deploy/local-crm/README.md)。
+已完成官方部署仓库 fork、项目重命名及框架大版本决策。本地预览使用 Frappe 16.56.0、ERPNext 16.55.0，并通过自定义镜像增加独立 Frappe CRM 16.0.4、Frappe HR 16.54.1；启动方式与维护说明见 [本地 CRM 部署文档](../deploy/local-crm/README.md)。
 
 本地预览不代表生产部署。BizBase 专属业务开发、GEO 业务流程及跨应用数据同步尚未完成。
 
