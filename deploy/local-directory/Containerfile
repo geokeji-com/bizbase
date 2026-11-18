@@ -1,0 +1,23 @@
+# 本机生成的镜像无可拉取的 registry manifest；bootstrap 严格校验 image ID 后创建专用别名。
+FROM bizbase/r01-base:sha256-0ffc5fd8061155bbc89c74361ae65b00eea560c36a7828b4e2d5a9012464ffa2
+
+ARG APP_REVISION=uncommitted
+ARG APP_SOURCE_SHA256
+LABEL org.opencontainers.image.title="BizBase Directory" \
+      org.opencontainers.image.revision=$APP_REVISION \
+      io.bizbase.source.sha256=$APP_SOURCE_SHA256
+
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:0 wheels/ /tmp/bizbase-wheels/
+COPY --chown=frappe:0 app/ apps/bizbase/
+COPY --chown=frappe:0 ops/ /opt/bizbase-ops/
+
+RUN env/bin/pip install --no-index --no-deps /tmp/bizbase-wheels/*.whl \
+    && env/bin/pip install --no-deps --no-build-isolation -e apps/bizbase \
+    && printf '\n' >> sites/apps.txt \
+    && printf 'bizbase\n' >> sites/apps.txt \
+    && bench build --app bizbase --production \
+    && env/bin/pip check \
+    && rm -rf /tmp/bizbase-wheels /home/frappe/.cache/pip /home/frappe/.cache/uv \
+    && chmod -R g=u apps/bizbase

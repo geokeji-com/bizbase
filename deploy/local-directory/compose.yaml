@@ -1,0 +1,131 @@
+name: bizbase-r01
+
+x-app: &app
+  image: ${BIZBASE_R01_IMAGE:?Run bootstrap.py build first}
+  platform: linux/arm64
+  pull_policy: never
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  networks: [directory]
+
+services:
+  db:
+    image: mariadb@sha256:5578b77f7f2cbfad1ba71619b080dcfb5cf84e99b5293059afbe6cbca9a7ad0d
+    platform: linux/arm64
+    pull_policy: never
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--skip-character-set-client-handshake", "--innodb-snapshot-isolation=OFF"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${BIZBASE_R01_DB_ROOT_PASSWORD:?Missing private environment}
+    volumes: ["database:/var/lib/mysql"]
+    networks: [directory]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 15s
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  redis-cache:
+    image: redis@sha256:3f9c6e23ed6bea3b41d0ef709fc164c1a0b7c00d5a21a60e0e9c33ada5496881
+    platform: linux/arm64
+    pull_policy: never
+    networks: [directory]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis@sha256:3f9c6e23ed6bea3b41d0ef709fc164c1a0b7c00d5a21a60e0e9c33ada5496881
+    platform: linux/arm64
+    pull_policy: never
+    volumes: ["queue:/data"]
+    networks: [directory]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  configurator:
+    <<: *app
+    entrypoint: ["/home/frappe/frappe-bench/env/bin/python", "/opt/bizbase-ops/configure.py"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis-cache: {condition: service_healthy}
+      redis-queue: {condition: service_healthy}
+    restart: "no"
+
+  create-site:
+    <<: *app
+    entrypoint: ["/home/frappe/frappe-bench/env/bin/python", "/opt/bizbase-ops/create_site.py"]
+    environment:
+      BIZBASE_R01_DB_ROOT_PASSWORD: ${BIZBASE_R01_DB_ROOT_PASSWORD:?Missing private environment}
+      BIZBASE_R01_ADMIN_PASSWORD: ${BIZBASE_R01_ADMIN_PASSWORD:?Missing private environment}
+    depends_on:
+      configurator: {condition: service_completed_successfully}
+    restart: "no"
+
+  backend:
+    <<: *app
+    environment:
+      GUNICORN_WORKERS: "2"
+      GUNICORN_THREADS: "4"
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+    restart: unless-stopped
+
+  websocket:
+    <<: *app
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+    restart: unless-stopped
+
+  frontend:
+    <<: *app
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: bizbase-acceptance.localhost
+      NGINX_LISTEN_PORT: "8080"
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: 10m
+    ports: ["127.0.0.1:8081:8080"]
+    depends_on: [backend, websocket]
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    profiles: [workers]
+    command: ["bench", "worker", "--queue", "short,default"]
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+    restart: unless-stopped
+
+  scheduler:
+    <<: *app
+    profiles: [scheduler]
+    command: ["bench", "schedule"]
+    depends_on:
+      create-site: {condition: service_completed_successfully}
+    restart: unless-stopped
+
+volumes:
+  database:
+  sites:
+  logs:
+  queue:
+
+networks:
+  directory:
+    driver: bridge

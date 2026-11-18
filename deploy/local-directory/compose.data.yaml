@@ -1,0 +1,28 @@
+# 仅在 C 阶段显式启用；真实文件不进入基础镜像或 frontend。
+services:
+  backend:
+    volumes:
+      - private-data:/run/bizbase-directory:ro
+
+  data-init:
+    image: ${BIZBASE_R01_IMAGE:?Run bootstrap.py build first}
+    platform: linux/arm64
+    pull_policy: never
+    user: "0:0"
+    profiles: [data-init]
+    entrypoint: ["/home/frappe/frappe-bench/env/bin/python", "/opt/bizbase-ops/stage_private_data.py"]
+    volumes:
+      - type: bind
+        source: ${BIZBASE_R01_SOURCE_SNAPSHOT:?Missing approved source snapshot}
+        target: /input/snapshot-s01.json
+        read_only: true
+      - type: bind
+        source: ${BIZBASE_R01_SOURCE_MANIFEST:?Missing approved source manifest}
+        target: /input/snapshot-s01.manifest.json
+        read_only: true
+      - private-data:/run/bizbase-directory
+    network_mode: none
+    restart: "no"
+
+volumes:
+  private-data:
