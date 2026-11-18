@@ -1,4 +1,4 @@
-# 本地 BizBase + ERPNext + Frappe CRM + Frappe HR 预览
+# 本地 GEO 运营 + ERPNext + Frappe CRM + Frappe HR 预览
 
 本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM 和 Frappe HR，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
 
@@ -12,8 +12,8 @@
 | CRM 提交 | `9ace234fceb3c5e7bd630b74f44ba1779e831abe` |
 | Frappe HR | 16.54.1 |
 | HR 提交 | `a01032350ba1b799345b862cb122fa408bf6780e` |
-| BizBase | 0.0.1，空 App |
-| 当前运行镜像 | `bizbase/local:0.0.1` |
+| GEO 运营 | 0.0.1，空 App |
+| 当前运行镜像 | `geo_operations/local:0.0.1` |
 
 基础镜像摘要固定在 `Containerfile` 中。CRM 的该版本声明支持 Frappe `>=16.0.0,<17.0.0`；不使用 `develop` 分支。
 
@@ -45,23 +45,23 @@ HR 此版本要求 Frappe、ERPNext `>=16.50.0,<17.0.0`，当前组合满足。�
 
 ## 启动与访问
 
-在上述 HR 镜像基础上构建 BizBase 镜像（构建上下文仅包含 App 源码）：
+在上述 HR 镜像基础上构建 GEO 运营镜像（构建上下文仅包含 App 源码）：
 
 ```bash
-rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.bizbase \
-  -t bizbase/local:0.0.1 apps/bizbase
+rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.geo_operations \
+  -t geo_operations/local:0.0.1 apps/geo_operations
 ```
 
-覆盖配置将仓库 `apps/bizbase` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
+覆盖配置将仓库 `apps/geo_operations` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
 
-**安装 CRM / HR / BizBase 后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为缺少这些 App 代码的上游镜像。此覆盖文件用于本机开发，不作为生产发布配置。**
+**安装 CRM / HR / GEO 运营后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为缺少这些 App 代码的上游镜像。此覆盖文件用于本机开发，不作为生产发布配置。**
 
 ```bash
 docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml up -d
 ```
 
 - Frappe HR：<http://127.0.0.1:8080/desk/hr-setup>
-- BizBase 空工作区：<http://127.0.0.1:8080/desk/bizbase>
+- GEO 运营空工作区：<http://127.0.0.1:8080/desk/geo_operations>
 - Build：<http://127.0.0.1:8080/desk/build>
 - 独立 CRM：<http://localhost:8080/crm>
 - ERPNext：<http://localhost:8080/desk>
@@ -128,14 +128,14 @@ docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml l
 
 员工数据、假期政策、审批角色、薪资及国内税社保规则尚未配置；官方界面部分文案仍为英文。本次仅安装并验证基础可用性。
 
-## 空 BizBase App 与 Build（2026-11-18，D-014）
+## 空 GEO 运营 App 与 Build（2026-11-18，D-014）
 
-沿用原 `bizbase` Compose 项目、`frontend` 站点及数据卷。App 源码见 [apps/bizbase](../../apps/bizbase/README.md)，仅提供 `BizBase` 标准模块和空工作区；不包含已撤回的客户目录实现，不接入生产。
+沿用原 `bizbase` Compose 项目、`frontend` 站点及数据卷。App 源码见 [apps/geo_operations](../../apps/geo_operations/README.md)，仅提供 `geo_operations` 标准模块和空工作区；不包含已撤回的客户目录实现，不接入生产。
 
 首次安装：先按上文完成备份并停止 scheduler/worker，再切换应用镜像；无需重建数据库或 Redis。执行：
 
 ```bash
-rtk proxy docker exec bizbase-backend-1 bench --site frontend install-app bizbase
+rtk proxy docker exec bizbase-backend-1 bench --site frontend install-app geo_operations
 rtk proxy docker exec bizbase-backend-1 bench --site frontend migrate
 rtk proxy docker exec bizbase-backend-1 bench --site frontend set-config developer_mode 1
 rtk proxy docker exec bizbase-backend-1 bench --site frontend clear-cache
@@ -143,15 +143,25 @@ rtk proxy docker exec bizbase-backend-1 bench --site frontend clear-cache
 
 随后重启后端、WebSocket，关闭维护模式并启动 scheduler/worker。开发模式仅设在本站点配置中，不修改镜像的全局默认。不要把本配置用于对外生产站点。
 
-在 Build 新建 DocType 时，确认 `Custom` 未勾选并选择 `BizBase` 模块，标准定义才会进入仓库的 App 目录。站点级自定义配置需明确选择导出方式，详见 App README。源码变更需要检查、提交、推送，界面保存不等于自动提交 Git。
+在 Build 新建 DocType 时，确认 `Custom` 未勾选并选择 `geo_operations` 模块，标准定义才会进入仓库的 App 目录。站点级自定义配置需明确选择导出方式，详见 App README。源码变更需要检查、提交、推送，界面保存不等于自动提交 Git。
 
 安装前的私有备份、数据摘要及验证记录位于 `/Users/aij/.codex/private/bizbase-empty-app-20261118/`，不进入 Git。恢复时须使用同一检查点的数据库、配置与附件，并恢复本次安装前的 HR 镜像及覆盖配置；不可只切回镜像。未进行恢复演练。
 
 本次验证结果：
 
-- `list-apps` 包含 `bizbase 0.0.1` 和原四个 App；迁移、`pip check`、`bench doctor` 通过，两个 worker 在线，维护模式已关闭。
-- 保存标准工作区成功写回本机 `apps/bizbase/bizbase/bizbase/workspace/bizbase/bizbase.json`。重新创建应用容器后，App 可加载、开发模式保留、源码挂载可写、图标 HTTP 200、ping 返回 pong。
-- 浏览器现有登录会话验证应用首页的 BizBase 入口、空工作区，以及 Build 新建 DocType 弹窗中的 BizBase 模块候选；未提交测试 DocType。App 中业务 DocType 为 0。
+- `list-apps` 包含 `geo_operations 0.0.1` 和原四个 App；迁移、`pip check`、`bench doctor` 通过，两个 worker 在线，维护模式已关闭。
+- 保存标准工作区成功写回本机 `apps/geo_operations/geo_operations/geo_operations/workspace/geo_operations/geo_operations.json`。重新创建应用容器后，App 可加载、开发模式保留、源码挂载可写、图标 HTTP 200、ping 返回 pong。
+- 浏览器现有登录会话验证应用首页的 GEO 运营入口和空工作区；服务端验证模块关联和标准工作区导出。未提交测试 DocType，App 中业务 DocType 为 0。
 - 原用户 3、公司 1、联系人 1；客户、ERP/CRM 线索与商机、销售订单、项目、员工仍为 0。58 个 Custom Field 和 197 个 Property Setter 的完整记录摘要保持不变；数据库和 Redis 容器 ID 未变。
 - 空工作区和 App 入口限 System Manager；已检查 Administrator 可见、Guest 不可见。后续业务数据权限尚未配置或验收。
 - 原 HR 备份子目录 `sites/frontend/private/backups/pre-hr-20261118` 导致 Frappe 备份清理函数报 `IsADirectoryError`。已保留并移到 `sites/frontend/private/pre-hr-20261118`；新备份成功复制到宿主机私有目录并验证 gzip/tar/JSON 可读性。
+
+## 完整改名（2026-11-18，D-016）
+
+本应用由旧包 `bizbase` 完整迁移到 `geo_operations`，显示名称统一为「GEO 运营」。安装记录、标准模块、工作区、菜单路由、图标路径、源码目录及镜像同步迁移。旧模块/工作区不再作为可用入口；框架原有地理信息 `Geo` 模块不变。
+
+一次性脚本 `rename_app.py` 仅适用于尚无业务 DocType 的旧空 App：完成备份并开启维护模式、停止 worker/scheduler 后，在旧 backend 中用 `env/bin/python` 执行。随后切换本目录的新镜像/源码挂载，运行 `bench --site frontend migrate`、`clear-cache`，恢复进程及维护模式外访问。新安装直接安装 `geo_operations`，不运行改名脚本。
+
+原 Compose 项目和数据卷继续承载 ERPNext、CRM、HR 及本站点；它们是部署基础设施，不是应用的安装标识。Git 仓库 URL、历史备份位置和历史决策原文保留用于追溯。迁移前的数据库、配置和附件备份位于 `/Users/aij/.codex/private/geo_operations-rename-20261118/backup/`。恢复时同时使用该检查点数据及旧代码/部署配置，不仅切换镜像。未演练恢复。
+
+验证结果：安装列表仅包含新标识 `geo_operations`，旧 Python 包不可导入，旧模块与工作区记录不存在。保存标准工作区已写回新源码目录；中文应用入口、页面标题、侧栏及面包屑均显示「GEO 运营」，浏览器入口为 `/desk/geo_operations`。用户 3、公司 1、联系人 1、自定义字段 58、属性配置 197 保持原数量；业务 DocType 为 0。数据库迁移、依赖检查和后台 worker 健康检查通过，维护模式已关闭。

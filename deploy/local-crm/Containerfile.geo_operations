@@ -1,0 +1,10 @@
+# 构建上下文为 apps/geo_operations；先按 Containerfile.hr 构建现有 HR 基础镜像。
+FROM bizbase/erpnext-crm-hr:16.55.0-16.0.4-16.54.1
+
+LABEL org.opencontainers.image.title="GEO 运营本地开发预览"
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:frappe . apps/geo_operations
+RUN env/bin/pip install --no-cache-dir --no-deps -e apps/geo_operations \
+    && env/bin/pip check \
+    && ln -s /home/frappe/frappe-bench/apps/geo_operations/geo_operations/public assets/geo_operations

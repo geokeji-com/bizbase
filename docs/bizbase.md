@@ -18,7 +18,7 @@ BizBase 是公司的业务基础平台，提供共享数据、通用能力和基
 
 [受控目录最小模型](business/directory-model.md)、[模型图](business/directory-model-views.md)和[清单 3](cycle/sheets/decision-sheet-03.md)曾按 D-007—D-009 获确认，相关目录实现已由 D-012 撤回。D-014 仅授权在原站点创建空 BizBase App，供后续 Build 配置使用，不恢复旧目录实现。
 
-[项目定位与官方应用选择](business/2026-11-17-bizbase-positioning-and-app-selection.md)根据完整业务与 SOP 重新评估原 13 项候选：保留 Frappe、ERPNext、CRM，其中自研 BizBase App 的具体范围现以 D-014 的空壳为准；Insights 后续优先试评，其余按真实需求引入。原生 ERP/CRM API 继续复用，BizBase 补充共同业务规则和 GEO 能力。
+[项目定位与官方应用选择](business/2026-11-17-bizbase-positioning-and-app-selection.md)根据完整业务与 SOP 重新评估原 13 项候选：保留 Frappe、ERPNext、CRM，其中自研 GEO 运营 App 的具体范围现以 D-014 的空壳为准；Insights 后续优先试评，其余按真实需求引入。原生 ERP/CRM API 继续复用，BizBase 补充共同业务规则和 GEO 能力。
 
 ## 项目来源
 
@@ -43,3 +43,5 @@ BizBase 是公司的业务基础平台，提供共享数据、通用能力和基
 ## 相关调研
 
 [官方应用与 GEO 业务调研（2026-11-17）](research/README.md)记录应用候选、厂商流程及数据模型建议。模型尚待结合公司实际业务确认，未据此安装新增应用或创建生产业务表。
+
+当前自研应用已按 D-016 完整改名为「GEO 运营」，技术标识 `geo_operations`；源码在 `apps/geo_operations`，使用 `/desk/geo_operations`。历史方案中的 BizBase App 称呼不表示仍安装旧包。
