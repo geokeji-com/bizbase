@@ -1,6 +1,6 @@
 [project]
 name = "bizbase"
-description = "BizBase 业务应用"
+description = "GEO 业务应用"
 authors = [{ name = "geokeji-com" }]
 requires-python = ">=3.14"
 readme = "README.md"

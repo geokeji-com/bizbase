@@ -1,4 +1,6 @@
-# BizBase App
+# GEO App
+
+应用显示名称为 **GEO**。安装包名仍为 `bizbase`，标准模块和工作区标识保留 `BizBase`，入口仍为 `/desk/bizbase`。Frappe 自带的 `Geo` 模块属于框架地理信息功能，不作为本业务应用的模块。
 
 版本 `0.0.1`：空的 Frappe App，包含应用首页入口、`BizBase` 标准模块和空工作区，没有业务表、业务数据、API 或后台任务。当前工作区仅向 System Manager 开放，业务权限后续按需求配置。
 

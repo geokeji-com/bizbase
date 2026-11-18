@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BizBase">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GEO">
   <rect width="64" height="64" rx="14" fill="#234E52"/>
-  <path d="M21 15h13c8 0 12 4 12 9 0 4-2 7-5 8 4 1 6 4 6 8 0 6-5 10-13 10H21V15zm8 7v7h5c3 0 5-1 5-4s-2-3-5-3h-5zm0 14v7h5c4 0 6-1 6-4s-2-3-6-3h-5z" fill="white"/>
+  <path d="M46 21a18 18 0 1 0 2 23V30H32v7h9v4a11 11 0 1 1-1-15z" fill="white"/>
 </svg>

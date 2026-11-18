@@ -1,7 +1,7 @@
 app_name = "bizbase"
-app_title = "BizBase"
+app_title = "GEO"
 app_publisher = "geokeji-com"
-app_description = "BizBase 业务应用"
+app_description = "GEO 业务应用"
 app_license = "MIT"
 
 add_to_apps_screen = [
