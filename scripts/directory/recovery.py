@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 
 import bootstrap as infra
 
@@ -57,6 +58,16 @@ def checkpoint() -> Path:
     metadata = {"project": infra.PROJECT, "site": infra.SITE, "image_id": image_id,
                 "created_at": identifier, "files": files,
                 "private_snapshot_digests": mounted_snapshot_digests()}
+    from site_ops import directory_fingerprint
+    metadata["directory_fingerprint"] = directory_fingerprint()
+    metadata["local_credentials"] = {}
+    for name in ("credentials.json", "client.json", "login.txt"):
+        original = infra.PRIVATE / name
+        if original.is_file():
+            copied = destination / name
+            copied.write_bytes(original.read_bytes())
+            copied.chmod(0o600)
+            metadata["local_credentials"][name] = hashlib.sha256(copied.read_bytes()).hexdigest()
     infra.private_write(destination / "checkpoint.json", json.dumps(metadata, indent=2) + "\n")
     print(f"Verified checkpoint: {destination}")
     return destination
@@ -77,6 +88,9 @@ def verify(identifier: str) -> tuple[Path, dict]:
     for name, digest in metadata["files"].items():
         if Path(name).name != name or hashlib.sha256((directory / name).read_bytes()).hexdigest() != digest:
             raise SystemExit("Checkpoint file digest mismatch")
+    for name, digest in metadata.get("local_credentials", {}).items():
+        if name not in {"credentials.json", "client.json", "login.txt"} or hashlib.sha256((directory / name).read_bytes()).hexdigest() != digest:
+            raise SystemExit("Checkpoint local credentials digest mismatch")
     print("Checkpoint identity, image and all file digests match")
     return directory, metadata
 
@@ -85,10 +99,13 @@ def restore(identifier: str, values: dict[str, str]) -> None:
     directory, metadata = verify(identifier)
     checkpoint()  # 先备份当前状态；失败则不开始恢复。
     container, _ = backend_identity()
-    target = f"{CONTAINER_ROOT}/restore-{identifier}"
+    # 使用现有 sites 卷暂存；一次性恢复容器看不到旧 backend 的 /tmp。
+    target = f"/home/frappe/frappe-bench/sites/{infra.SITE}/private/restore-staging/{identifier}"
     infra.compose("exec", "-T", "backend", "mkdir", "-p", target)
     infra.compose("cp", str(directory) + "/.", f"backend:{target}")
-    infra.compose("stop", "frontend", "websocket")
+    # docker cp 的文件所有者可能是 root；只调整本次明确指定的暂存目录。
+    infra.run(["docker", "exec", "--user", "0:0", container, "chown", "-R", "1000:1000", target])
+    infra.run(["docker", "exec", "--user", "0:0", container, "chmod", "700", target])
     # 凭据通过 stdin 传入，命令文本、终端与恢复记录均不包含其值。
     saved_config = json.loads(next(directory.glob("*-site_config_backup.json")).read_text())
     infra.REDACTIONS.extend(str(value) for key, value in saved_config.items()
@@ -120,19 +137,46 @@ run("migrate")
 run("disable-scheduler")
 run("set-maintenance-mode", "off")
 '''
-    process = subprocess.run(["docker", "exec", "-i", container, "env/bin/python", "-c", script],
-                             input=json.dumps({"path": target, "password": values["BIZBASE_R01_DB_ROOT_PASSWORD"]}),
-                             text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    print(infra.sanitized(process.stdout), end="")
-    if process.returncode:
-        raise SystemExit("Restore failed; frontend remains stopped and the pre-restore checkpoint is retained")
-    infra.compose("restart", "backend")
-    infra.compose("start", "websocket", "frontend")
-    infra.wait_http()
+    # 将本次恢复镜像锁为已验证的 ID，防止环境文件或标签漂移；其余配置和卷沿用 backend。
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", prefix="restore-image-",
+                                     dir=infra.PRIVATE, delete=False) as override:
+        json.dump({"services": {"backend": {"image": metadata["image_id"]}}}, override)
+        override_path = Path(override.name)
+    files = ["-f", str(infra.COMPOSE_FILE)]
+    if values.get("BIZBASE_R01_RUNTIME_DATA") == "1":
+        files += ["-f", str(infra.ROOT / "deploy/local-directory/compose.data.yaml")]
+    command = ["docker", "compose", "--project-name", infra.PROJECT, "--env-file", str(infra.ENV_FILE),
+               *files, "-f", str(override_path), "run", "--rm", "--no-deps", "-T",
+               "--name", "bizbase-r01-restore", "--entrypoint", "/home/frappe/frappe-bench/env/bin/python",
+               "backend", "-c", script]
+    try:
+        # stop 等待进程退出后才返回；超过宽限时间时 Docker 终止残留进程。
+        # 后端彻底退出后才恢复数据库，避免已接收请求在恢复期间提交写入。
+        infra.compose("stop", "--timeout", "30", "frontend", "websocket", "backend")
+        running = infra.compose("ps", "--services", "--status", "running", capture=True).splitlines()
+        if any(service in running for service in ("frontend", "websocket", "backend", "worker", "scheduler")):
+            raise SystemExit("A business process is still running; refusing to restore")
+        process = subprocess.run(command,
+                                 input=json.dumps({"path": target, "password": values["BIZBASE_R01_DB_ROOT_PASSWORD"]}),
+                                 cwd=infra.ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        print(infra.sanitized(process.stdout), end="")
+        if process.returncode:
+            raise SystemExit("Restore failed; all application services remain stopped and the pre-restore checkpoint is retained")
+        for name in metadata.get("local_credentials", {}):
+            infra.private_write(infra.PRIVATE / name, (directory / name).read_text())
+        # 一次性容器已经退出且移除，才恢复原有服务；不运行 up 或重复安装流程。
+        infra.compose("start", "backend", "websocket", "frontend")
+        infra.wait_http()
+    except BaseException:
+        infra.compose("stop", "frontend", "websocket", "backend")
+        raise
+    finally:
+        override_path.unlink(missing_ok=True)
     infra.private_write(infra.PRIVATE / "last-restore.json", json.dumps({
         "checkpoint": identifier, "image_id": metadata["image_id"],
         "restored_at": datetime.now(timezone.utc).isoformat(),
         "business_reverification_required": True,
+        "expected_directory_fingerprint": metadata["directory_fingerprint"],
     }, indent=2) + "\n")
     print("Database, site configuration and files restored; rerun business and permission acceptance")
 
