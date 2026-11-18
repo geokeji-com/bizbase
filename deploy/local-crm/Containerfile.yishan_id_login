@@ -1,0 +1,10 @@
+# 构建上下文为 apps/yishan_id_login；先按 Containerfile.geo_operations 构建 GEO 运营镜像。
+FROM geo_operations/local:0.0.1
+
+LABEL org.opencontainers.image.title="BizBase 本地开发预览（含移山 ID 登录）"
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:frappe . apps/yishan_id_login
+RUN env/bin/pip install --no-cache-dir --no-deps -e apps/yishan_id_login \
+    && env/bin/pip check \
+    && ln -s /home/frappe/frappe-bench/apps/yishan_id_login/yishan_id_login/public assets/yishan_id_login

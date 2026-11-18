@@ -1,0 +1,16 @@
+app_name = "yishan_id_login"
+app_title = "移山 ID 登录"
+app_publisher = "geokeji-com"
+app_description = "站点级移山 ID（飞书员工）登录"
+app_license = "MIT"
+
+# 每个请求复查移山 ID 会话的在职状态；非移山 ID 会话直接跳过。
+before_request = ["yishan_id_login.session.enforce"]
+
+# 在 /login 页增加移山 ID 按钮。
+update_website_context = ["yishan_id_login.auth.login_page_context"]
+
+# HR 移动端登录页通过该方法读取第三方登录按钮。
+override_whitelisted_methods = {
+	"hrms.api.oauth.oauth_providers": "yishan_id_login.auth.hrms_oauth_providers",
+}
