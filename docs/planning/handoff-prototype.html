@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>签约交接 · 评审原型</title>
+<style>
+:root { color-scheme: light; font-family: 'Source Sans 3', system-ui, sans-serif; color: #202f32; background: #f6f6f1; }
+body { max-width: 52rem; margin: auto; padding: 2rem 1rem; line-height: 1.65; }
+h1, h2, p { margin: .4rem 0; } h2 { font-size: 1.15rem; }
+section { background: white; padding: 1rem 1.25rem; border: 1px solid #c7ceca; border-radius: .4rem; margin: 1rem 0; }
+button { color: inherit; background: white; font: inherit; border: 1px solid #81938f; border-radius: .3rem; padding: .3rem .65rem; margin: .25rem .25rem .25rem 0; cursor: pointer; }
+button[aria-pressed=true], #step { background: #145b50; color: white; } button:disabled { opacity: .6; }
+dt { font-weight: 650; } dd { margin: 0 0 .5rem; } output { display: block; font-weight: 600; }
+</style>
+<h1>一份已签合同，怎样交到运营手里？</h1>
+<p>评审原型 · 合成案例。用销售的合同入口和运营的服务入口核对同一项服务，再看材料有分歧或人员撤权时，各自能查到什么。所有操作仅在当前页面生效。</p>
+<section aria-label="案例状态"><h2>当前案例</h2><dl id="facts"></dl><output id="feedback" aria-live="polite"></output></section>
+<section><h2>按场景走查</h2><div id="scenarios"></div><p id="prompt"></p><button id="step"></button></section>
+<section><h2>自由试用</h2><div id="actions"></div></section>
+<script>
+const initial = () => ({ created: false, member: false, conflict: false, entry: '', message: '从一份已签合同开始。' });
+const record = '合同 HT-01 · 服务 FW-01 · 被服务组织乙 · 产品甲 · 负责人运营甲';
+const labels = { create: '销售建服务草稿并指定运营甲', grant: '授权维护人确认运营甲的范围', sales: '销售从合同查服务', ops: '运营甲从我的服务查合同', conflict: '并列登记两份频次依据', outsider: '其他服务成员打开材料链接', revoke: '授权管理人撤销运营甲的成员资格', old: '运营甲重开原材料链接', edit: '销售尝试修改履约配置', reset: '重置案例' };
+function transition(s, action) {
+  const result = (message, patch = {}) => ({ ...s, entry: labels[action], message, ...patch });
+  switch (action) {
+    case 'reset': return initial();
+    case 'create': return s.created ? result('已有服务 FW-01，沿用原记录。') : result('草稿已关联合同和标的，运营甲的服务读取权待确认。', { created: true });
+    case 'grant': return s.created ? result('运营甲已获准读取本服务及约定材料。', { member: true }) : result('请先确定服务及其负责人。');
+    case 'sales': return result(s.created ? record : '名下合同 HT-01 尚无关联服务。');
+    case 'ops': return result(s.member ? record + (s.conflict ? '。两份频次依据待核实。' : '。可打开获准的合同材料。') : '我的服务中没有这项服务。');
+    case 'conflict': return s.member ? result('运营甲已分别登记材料甲、乙；执行频次及结算依据均待核实。', { conflict: true }) : result('当前运营甲没有这项服务的登记权限。');
+    case 'outsider': return result('无法读取材料。');
+    case 'revoke': return s.member ? result('运营甲读取权限已撤销；服务归属和材料保留。', { member: false }) : result('当前没有运营甲的有效授权。');
+    case 'old': return result(s.member ? '可读取本服务获准的材料甲。' : '无法读取材料。');
+    case 'edit': return result('销售角色没有修改履约配置的权限。');
+  }
+}
+const cases = [
+  ['双向核对', '从两个岗位的入口读出合同、服务和标的。', ['sales', 'create', 'ops', 'grant', 'sales', 'ops', 'edit']],
+  ['条款分歧', '即使交接完成，频次也可能待确认。观察运营能否找到两份依据。', ['create', 'grant', 'conflict', 'ops']],
+  ['旧链接与撤权', '比较有权成员、另一服务成员和撤权后原成员的读取结果。', ['create', 'grant', 'old', 'outsider', 'revoke', 'old', 'sales']]
+];
+</script>
+<script>
+const byId = id => document.getElementById(id);
+let state = initial(), scenario = 0, index = 0;
+function render() {
+  const fields = [['评审者可见的服务记录', state.created ? record : '已签合同 HT-01，待建服务'], ['运营甲当前读取权', state.member ? '已授权' : '无授权'], ['采样频次依据', state.conflict ? '材料甲、乙存在差异，待核实' : '尚未登记'], ['最近操作', state.entry || '开始走查']];
+  byId('facts').replaceChildren();
+  for (const [key, value] of fields) {
+    for (const [tag, text] of [['dt', key], ['dd', value]]) {
+      const node = document.createElement(tag); node.textContent = text; byId('facts').append(node);
+    }
+  }
+  byId('feedback').textContent = state.message;
+  const [name, prompt, steps] = cases[scenario];
+  byId('prompt').textContent = prompt;
+  byId('step').textContent = index < steps.length ? `${index + 1} / ${steps.length}　${labels[steps[index]]}` : `重新走查「${name}」`;
+  [...byId('scenarios').children].forEach((b, i) => b.setAttribute('aria-pressed', i === scenario));
+}
+function start(i) { scenario = i; index = 0; state = initial(); render(); }
+function button(parent, label, click) { const b = document.createElement('button'); b.textContent = label; b.onclick = click; byId(parent).append(b); }
+cases.forEach(([name], i) => button('scenarios', name, () => start(i)));
+Object.entries(labels).forEach(([action, label]) => button('actions', label, () => { state = transition(state, action); index = cases[scenario][2].length; render(); }));
+byId('step').onclick = () => { const steps = cases[scenario][2]; if (index === steps.length) return start(scenario); state = transition(state, steps[index++]); render(); };
+render();
+</script>
+</html>
