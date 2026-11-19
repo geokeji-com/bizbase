@@ -21,6 +21,12 @@ RDS 数据库 `bizbase` 的业务表只放在 `bizbase_app` schema，不需要 `
 
 管理入口为 `/file-share`（文件分享）和 `/yishan-id`（移山 ID）。新生成的文件分享链接使用 `/file-share/<ID>`；旧 `/s/<ID>` 及已有 Desk 管理书签继续可用。
 
+## 功能访问统计
+
+在 [Microsoft Clarity 项目](https://clarity.microsoft.com/projects/view/uy7jcuzycs/dashboard) 中查看 `/_usage/` 下各页面的浏览量。`/_usage/file-share/view` 汇总打开分享内容的次数，`/_usage/file-share/list` 汇总进入文件分享列表的次数，`/_usage/desk/form/customer` 汇总打开客户表单的次数。同一个功能下的不同单据共用一个统计 URL。未识别的自定义功能会归入 `other`。
+
+正式站通过第一方导航脚本识别工作台路由。官方 Clarity 脚本只在权限隔离的空白统计页中运行，纯跳转、API 请求及上传文件内部的资源加载不单独计次。这个项目用于比较功能访问量；录屏和热图只会对应空白统计页，独立用户数也不适合用来统计员工人数。
+
 ## 移山 ID
 
 发布包含 `managed.py` 的镜像及新版 Compose 时，将 `sync_yishan_id.py` 放在 `/opt/bizbase-prod/`，两个同名 service/timer 单元放在 `/etc/systemd/system/`。由 root 执行 `systemctl daemon-reload`、`systemctl start bizbase-yishan-id.service`、`systemctl enable --now bizbase-yishan-id.timer`，再用新版 Compose 重建应用容器。不要重跑建站脚本。

@@ -181,6 +181,17 @@ def password_cookie(name: str) -> str:
 # ---------- 外壳页 ----------
 
 
+def usage_frame(feature):
+	# Count the outer page only. Uploaded resources may contain private, signed URLs.
+	if frappe.local.site != "bizbase.geokeji.com" or not re.fullmatch(
+		r"/(?:file-share|s)/[A-Za-z0-9]{10}/?", frappe.request.path
+	):
+		return ""
+	return (f'<iframe src="/_usage/file-share/{feature}" title="访问统计" aria-hidden="true" '
+		'tabindex="-1" credentialless sandbox="allow-scripts" referrerpolicy="no-referrer" '
+		'style="display:none" width="1" height="1"></iframe>')
+
+
 def serve_wrapper(share, base):
 	user = frappe.session.user
 	request = frappe.request
@@ -222,6 +233,7 @@ def serve_wrapper(share, base):
 <style>html,body{{margin:0;height:100%;overflow:hidden}}iframe{{border:0;width:100%;height:100%;display:block}}</style>
 </head><body>
 <iframe src="{html.escape(src)}" title="{title}" sandbox="{SANDBOX}"></iframe>
+{usage_frame("view")}
 </body></html>"""
 	resp = Response(body, content_type="text/html; charset=utf-8")
 	if cookie:
@@ -330,7 +342,7 @@ def password_page(share, url, error: str = "", status: int = 200):
 {err}
 <button type="submit">查看</button>
 </form>"""
-	return page(status, html.escape(share.title), "这份内容需要密码才能查看。", body)
+	return page(status, html.escape(share.title), "这份内容需要密码才能查看。", body, feature="password")
 
 
 # ---------- 页面工具 ----------
@@ -347,7 +359,7 @@ def message(status: int, title: str, text: str):
 	return page(status, html.escape(title), html.escape(text), "")
 
 
-def page(status: int, title: str, text: str, body: str):
+def page(status: int, title: str, text: str, body: str, feature="unavailable"):
 	doc = f"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -363,9 +375,9 @@ input[type=password]{{width:100%;box-sizing:border-box;padding:10px;border:1px s
 button{{margin-top:12px;width:100%;padding:10px;border:0;border-radius:8px;background:#234E52;color:#fff;font-size:15px;cursor:pointer}}
 .err{{color:#c0392b;margin:8px 0 0}}
 </style></head>
-<body><main><h1>{title}</h1><p>{text}</p>{body}</main></body></html>"""
+<body><main><h1>{title}</h1><p>{text}</p>{body}</main>{usage_frame(feature)}</body></html>"""
 	resp = Response(doc, status=status, content_type="text/html; charset=utf-8")
-	resp.headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
+	resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
 	resp.headers["Referrer-Policy"] = "no-referrer"
 	resp.headers["Cache-Control"] = "no-store"
 	resp.headers["X-Robots-Tag"] = "noindex"
