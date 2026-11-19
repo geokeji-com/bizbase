@@ -1,7 +1,15 @@
 # Environment Variables
 .env
+.env.local
+.env.production
 .DS_Store
 *.egg-info/
+
+# BizBase deployment credentials and runtime files
+connections.ini
+initial-admin-password
+yishan-runtime/
+first-install.log
 
 # mounted volume
 sites
@@ -27,6 +35,8 @@ development/*
 *.pyc
 __pycache__
 venv
+.venv/
+.pytest_cache/
 
 # NodeJS
 node_modules
