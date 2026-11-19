@@ -12,6 +12,45 @@ RDS 数据库 `bizbase` 的业务表只放在 `bizbase_app` schema，不需要 `
 
 升级或录入正式业务数据前，确认 RDS 备份覆盖和可恢复性，并为附件、站点配置（含加密密钥）配置受保护的异机备份和恢复演练。只有数据库快照不能恢复附件与密钥。
 
+## 发布
+
+日常发布用 `/opt/bizbase-prod/deploy.sh` 做蓝绿切换，不再对运行中的项目执行 `docker compose up`，原地重建容器会让入口 502 数十秒。两套槽位 `bizbase-prod-blue`（3181）和 `bizbase-prod-green`（3182）共用站点目录、数据库与 Redis。脚本先在空闲槽位启动 web 进程，健康检查和冒烟测试通过后改写宿主机 Nginx 的 upstream 并 reload，然后交接 worker 与 scheduler。旧槽位 web 进程保留，可秒级回滚。尚未切换过的原 `bizbase-prod` 项目（3180）视为第一个槽位。
+
+按改动选择方式：
+
+| 类型 | 改动 | 做法 |
+| --- | --- | --- |
+| A | 仅代码、模板、自定义应用静态文件 | `deploy.sh release IMAGE` |
+| B | 只新增 DocType、字段、索引，旧代码可在新结构上运行 | `deploy.sh release IMAGE --migrate`，迁移时旧槽位继续服务 |
+| C | 删除、重命名字段或改类型 | 拆成多次 B：先加新结构并双写，迁移数据，最后一次发布再删旧结构 |
+| D | 升级 Frappe/ERPNext、新装应用、改共享配置 | 维护窗口，见下文 |
+
+Frappe/ERPNext 资源清单（`assets/assets.json`）与运行中镜像不同，或镜像比站点 `apps.txt` 多出应用时，脚本拒绝发布。两个槽位共用 Redis 中的资源清单，只能在维护窗口里换。
+
+```sh
+/opt/bizbase-prod/deploy.sh status
+/opt/bizbase-prod/deploy.sh release bizbase/prod:<tag> [--migrate]
+/opt/bizbase-prod/deploy.sh rollback [--force]
+/opt/bizbase-prod/deploy.sh retire
+```
+
+`rollback` 将流量和后台任务切回上一槽位。若当前槽位执行过 migrate，需确认变更属于 B 类后加 `--force`。观察期结束后用 `retire` 回收旧槽位；下次 `release` 也会自动回收。切换后 Nginx 仍会让在途请求在旧槽位上完成，worker 有 120 秒完成当前任务。登录会话存于共享 Redis 与数据库，切换不需要重新登录。
+
+槽位镜像与端口写在 `/opt/bizbase-prod/slots/<槽位>.env`，状态记录在同目录。对当前槽位执行 compose 命令时用 `deploy.sh compose ...`，例如 `deploy.sh compose exec backend bench --site bizbase.geokeji.com list-apps`。
+
+### 一次性接入（已于 2026-11-19 完成）
+
+1. 将新版 `compose.yaml` 和 `deploy.sh` 放到 `/opt/bizbase-prod/`，`chmod 700 deploy.sh`。
+2. 创建 `/www/server/panel/vhost/nginx/bizbase-upstream.inc`，内容为 `server 127.0.0.1:3180;`。
+3. 在 `bizbase.conf` 顶部加 `upstream bizbase_slot { include /www/server/panel/vhost/nginx/bizbase-upstream.inc; }`，把 `proxy_pass http://127.0.0.1:3180` 改为 `proxy_pass http://bizbase_slot`。upstream 名在整个 http 上下文中唯一，不要和其他站点同名。
+4. 将 `bizbase-unavailable.html` 放到 `/var/lib/bizbase-pages/`（宝塔 vhost 目录对 Nginx worker 用户 `www` 不可读）。在 443 server 中加入 `error_page 502 504 /bizbase-unavailable.html;` 和 `location = /bizbase-unavailable.html { root /var/lib/bizbase-pages; internal; }`。宿主机连不上槽位时用户看到「正在更新」提示，不再是 Nginx 默认错误页。503 不拦截，应用维护模式的页面照常透传。
+5. `nginx -t` 通过后 `nginx -s reload`，不重建容器，接入本身不中断服务。原配置备份在 `/root/bizbase.conf.bak-20261119-cutover`。用 `deploy.sh status` 确认 active 为 `legacy`、Nginx 指向 3180。
+6. 原项目仍在运行旧版 compose，没有健康检查。第一次 `deploy.sh release` 时会启动 blue 并切换。之后再发布时，脚本会自动回收原项目。
+
+### 维护窗口（D 类）
+
+按「已有站点首次加入 ERPNext 与文件分享」的顺序执行，命令改用 `deploy.sh compose`，`BIZBASE_IMAGE` 改写在当前槽位的 env 文件中。若只需短暂禁止写入，可在站点配置同时设置 `maintenance_mode` 和 `allow_reads_during_maintenance`，期间仍可浏览，写入时报维护中。
+
 ## 已有站点首次加入 ERPNext 与文件分享
 
 1. 在获准的隔离 RDS 测试库演练安装、迁移及恢复。生产维护前记录当前镜像 ID、站点已装应用、Compose 配置和持久卷 `sites/apps.txt`。核对 RDS 恢复点并保留同一检查点的站点配置、密钥及附件备份。

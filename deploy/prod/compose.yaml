@@ -17,10 +17,23 @@ x-runtime: &runtime
     driver: json-file
     options: { max-size: 10m, max-file: '3' }
 
+# Blue-green slots run this file under separate project names and ports; see deploy.sh.
+x-health: &health
+  interval: 5s
+  timeout: 3s
+  retries: 3
+  start_period: 120s
+  start_interval: 2s
+
 services:
   backend:
     <<: *runtime
     command: [start.sh]
+    # Any HTTP answer means gunicorn has preloaded the app and bound the port.
+    healthcheck:
+      <<: *health
+      test: [CMD-SHELL, 'curl -so /dev/null http://127.0.0.1:8000/api/method/ping']
+    stop_grace_period: 30s
   websocket:
     <<: *runtime
     command: [node, /home/frappe/frappe-bench/apps/frappe/socketio.js]
@@ -30,6 +43,8 @@ services:
   worker:
     <<: *runtime
     command: [bench, worker, --queue, 'short,default,long']
+    # SIGTERM lets RQ finish the running job before the slot hands over.
+    stop_grace_period: 120s
   frontend:
     <<: *runtime
     command: [nginx-entrypoint.sh]
@@ -37,7 +52,10 @@ services:
     environment:
       BACKEND: backend:8000
       SOCKETIO: websocket:9000
-      FRAPPE_SITE_NAME_HEADER: bizbase.geokeji.com
+      FRAPPE_SITE_NAME_HEADER: ${BIZBASE_SITE:-bizbase.geokeji.com}
       UPSTREAM_REAL_IP_ADDRESS: ${BIZBASE_PROXY_IP:-127.0.0.1}
+    healthcheck:
+      <<: *health
+      test: [CMD-SHELL, 'curl -fso /dev/null http://127.0.0.1:8080/api/method/ping']
     ports:
-      - '127.0.0.1:3180:8080'
+      - '127.0.0.1:${BIZBASE_PORT:-3180}:8080'
