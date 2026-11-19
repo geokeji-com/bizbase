@@ -2,6 +2,7 @@
 
 import time
 import unittest
+from unittest.mock import patch
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -186,6 +187,14 @@ class TestIdentityStatus(OIDCTestCase):
 		with self.assertRaises(IdentityStatusUnavailableError):
 			self.check()
 
+	def test_provider_refusal_is_not_a_transient_failure(self):
+		for status in (401, 403):
+			with self.subTest(status=status), patch.object(
+				self.idp, "post", return_value=fake_idp.Response(status, {})
+			):
+				with self.assertRaises(IdentityInactiveError):
+					self.check()
+
 	def test_malformed_response_is_unavailable(self):
 		self.idp.status = {"active": "yes", "current_identity_version": 1}
 		with self.assertRaises(IdentityStatusUnavailableError):
@@ -197,6 +206,10 @@ class TestLogoutToken(OIDCTestCase):
 		claims = verify_logout_token(self.provider, self.settings, self.idp.logout_token())
 		self.assertEqual(claims["sub"], "logto-sub-1")
 		self.assertEqual(claims["sid"], "sid-1")
+
+	def test_empty_subject_and_session_id_cannot_match_all_sessions(self):
+		with self.assertRaises(OIDCError):
+			verify_logout_token(self.provider, self.settings, self.idp.logout_token(sub="", sid=""))
 
 	def test_nonce_rejected(self):
 		with self.assertRaises(OIDCError):

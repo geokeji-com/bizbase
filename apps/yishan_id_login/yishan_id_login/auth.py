@@ -17,10 +17,13 @@ from yishan_id_login.oidc import (
 	DEFAULT_DIRECT_SIGN_IN,
 	DEFAULT_MAX_AUTH_AGE_SECONDS,
 	DEFAULT_SCOPES,
+	IdentityInactiveError,
+	IdentityStatusUnavailableError,
 	OIDCError,
 	Provider,
 	Settings,
 	authorization_url,
+	check_identity_status,
 	exchange_code,
 	new_pkce,
 	random_token,
@@ -96,7 +99,6 @@ def login_page_context(context):
 			"name": "yishan_id",
 			"provider_name": _("Yishan ID"),
 			"auth_url": start_url(frappe.local.request.args.get("redirect-to")),
-			"icon": '<img src="/assets/yishan_id_login/yishan-id.svg" alt="">',
 		},
 	)
 	return {"provider_logins": providers, "social_login": True}
@@ -184,6 +186,17 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
 		frappe.log_error(title="Yishan ID callback rejected", message=str(e))
 		return error_page(_("Yishan ID login failed. Please try again."))
 
+	try:
+		lease = check_identity_status(
+			provider, settings, principal.yishan_uid, principal.identity_version, principal.access_token
+		)
+	except IdentityInactiveError:
+		return error_page(_("Yishan ID login failed. Please try again."), 403)
+	except IdentityStatusUnavailableError:
+		return error_page(_("Yishan ID is temporarily unavailable. Please try again later."), 503)
+	if principal.expires_at <= time.time():
+		return error_page(_("Yishan ID login failed. Please try again."), 403)
+
 	user = bound_user(principal)
 	if not user:
 		return error_page(
@@ -195,7 +208,6 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
 
 	session_end = datetime.fromtimestamp(principal.expires_at, UTC).isoformat()
 	frappe.local.login_manager.login_as(user, session_end=session_end)
-	now = time.time()
 	frappe.local.session_obj.data.data.update(
 		{
 			"yid_uid": principal.yishan_uid,
@@ -205,9 +217,8 @@ def callback(code: str | None = None, state: str | None = None, error: str | Non
 			"yid_sid": principal.sid,
 			"yid_token": encrypt(principal.access_token),
 			"yid_token_exp": principal.expires_at,
-			# 回调前移山 ID 已在签发令牌时确认在职；下一次请求开始复查。
-			"yid_verified_at": now,
-			"yid_lease_until": 0,
+			"yid_verified_at": lease.verified_at,
+			"yid_lease_until": lease.expires_at,
 		}
 	)
 	frappe.local.session_obj.update(force=True)

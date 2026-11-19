@@ -76,6 +76,7 @@ class AvailabilityTest(unittest.TestCase):
             self.load(self.valid)
             result = auth.login_page_context(context)
             self.assertEqual([p['name'] for p in result['provider_logins']], ['yishan_id', 'existing'])
+            self.assertFalse(result['provider_logins'][0].get('icon'))
             self.http.post.return_value.status_code = 401
             self.load(self.valid)
             self.assertIsNone(auth.login_page_context(context))

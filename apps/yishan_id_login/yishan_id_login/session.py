@@ -12,6 +12,7 @@ from frappe.utils.password import decrypt
 from yishan_id_login import auth
 from yishan_id_login.auth import BINDING_DOCTYPE, get_valid_settings
 from yishan_id_login.oidc import (
+	POSITIVE_TTL_SECONDS,
 	IdentityInactiveError,
 	IdentityStatusUnavailableError,
 	check_identity_status,
@@ -29,10 +30,13 @@ def enforce():
 		return
 	data = session.data
 	now = time.time()
-	if now < (data.get("yid_lease_until") or 0):
+	token_expiry = data.get("yid_token_exp") or 0
+	if now < min(data.get("yid_lease_until") or 0, token_expiry):
 		return
 
 	reason = evaluate(data, now)
+	if not reason and time.time() >= token_expiry:
+		reason = "Yishan ID token expired"
 	if reason:
 		terminate(reason)
 		return
@@ -55,10 +59,11 @@ def evaluate(data: dict, now: float) -> str | None:
 	except IdentityInactiveError:
 		return "Yishan ID identity inactive"
 	except IdentityStatusUnavailableError:
+		now = time.time()
 		stale_until = (data.get("yid_verified_at") or 0) + MAXIMUM_STALE_SECONDS
 		if now < stale_until:
 			# 沿用上一次确认；不延长 verified_at，最近一次确认 5 分钟后仍失败就拒绝。
-			data["yid_lease_until"] = min(now + 60, stale_until)
+			data["yid_lease_until"] = min(now + POSITIVE_TTL_SECONDS, stale_until)
 			frappe.log_error(title="Yishan ID status unavailable, using recent result")
 			return None
 		return "Yishan ID status unavailable"

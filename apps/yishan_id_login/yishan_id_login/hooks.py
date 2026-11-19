@@ -4,6 +4,16 @@ app_publisher = "geokeji-com"
 app_description = "站点级移山 ID（飞书员工）登录"
 app_license = "MIT"
 
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"title": app_title,
+		"logo": "/assets/yishan_id_login/yishan-id.svg",
+		"route": "/desk/yishan-id-binding",
+		"has_permission": "yishan_id_login.can_manage_bindings",
+	}
+]
+
 # 每个请求复查移山 ID 会话的在职状态；非移山 ID 会话直接跳过。
 before_request = ["yishan_id_login.session.enforce"]
 

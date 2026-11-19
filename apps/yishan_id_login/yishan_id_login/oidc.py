@@ -306,8 +306,12 @@ def check_identity_status(
 			headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
 			timeout=STATUS_TIMEOUT_SECONDS,
 		)
+		if response.status_code in (401, 403):
+			raise IdentityInactiveError("移山 ID 拒绝身份核验")
 		response.raise_for_status()
 		body = response.json()
+	except IdentityInactiveError:
+		raise
 	except Exception as e:
 		raise IdentityStatusUnavailableError("无法查询移山 ID 在职状态") from e
 	if not isinstance(body, dict) or not isinstance(body.get("active"), bool):
@@ -335,7 +339,10 @@ def verify_logout_token(provider: Provider, settings: Settings, token: str, now=
 	events = claims.get("events")
 	if not isinstance(events, dict) or not isinstance(events.get(BACKCHANNEL_EVENT), dict):
 		raise OIDCError("logout_token 缺少退出事件")
-	if not isinstance(claims.get("sub"), str) and not isinstance(claims.get("sid"), str):
+	for key in ("sub", "sid"):
+		if key in claims and (not isinstance(claims[key], str) or not claims[key].strip()):
+			raise OIDCError(f"logout_token 的 {key} 无效")
+	if "sub" not in claims and "sid" not in claims:
 		raise OIDCError("logout_token 缺少 sub 或 sid")
 	if abs(now - claims["iat"]) > LOGOUT_TOKEN_MAX_AGE_SECONDS:
 		raise OIDCError("logout_token 已过期")

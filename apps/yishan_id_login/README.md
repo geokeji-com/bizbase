@@ -8,11 +8,11 @@
 
 1. 登录页的「通过移山 ID 登录」进入 `/api/method/yishan_id_login.auth.start`。服务端生成 state、nonce 和 PKCE S256，把它们和一个浏览器绑定 cookie 一起暂存 10 分钟，然后跳转到移山 ID，并默认直接进入飞书员工连接器。
 2. 移山 ID 回调 `/api/method/yishan_id_login.auth.callback`。服务端核对 state 和浏览器 cookie，用授权码换取令牌，再校验签名（JWKS）、issuer、audience、有效期、nonce、认证时间（默认 2 小时内），以及 access token 的 `client_id`、`yishan.uid`、`yishan.identity_version` 和员工身份。
-3. 按 `yishan.uid` 查找「移山 ID 绑定」。只有已启用、并指向已启用用户的绑定才会登录，不按 email 或手机号匹配。Administrator 和 Guest 不能绑定。第一次登录但没有绑定时，系统会登记一条未启用的绑定，等管理员选择用户后启用。
-4. 登录后，每个请求都会复查在职状态。确认在职的结果最多缓存 60 秒。移山 ID 明确答复离职或身份版本变化时，立即退出。移山 ID 不可用时，最近一次确认最多沿用 5 分钟，之后退出。access token 到期时，会话同时结束。
+3. 每次新建会话前，先向移山 ID 确认在职状态，再按 `yishan.uid` 查找「移山 ID 绑定」。只有已启用、并指向已启用用户的绑定才会登录，不按 email 或手机号匹配。Administrator 和 Guest 不能绑定。第一次登录但没有绑定时，系统会登记一条未启用的绑定，等管理员选择用户后启用。
+4. 登录后，请求优先使用最近一次在职确认，确认结果最多缓存 60 秒。移山 ID 明确拒绝核验、答复离职或身份版本变化时，结束会话。控制面暂时不可用时，从最后一次成功确认起最多沿用 5 分钟，到期后拒绝请求。access token 到期时，会话同时结束。
 5. 移山 ID 的后端通知退出发到 `/api/method/yishan_id_login.auth.backchannel_logout`。服务端校验 logout token 后，删除对应的会话。停用、换绑或删除绑定时，也会立即撤销该移山 ID 的会话。
 
-access token 加密保存在服务端会话中，浏览器只拿到 Frappe 原有的 `sid` cookie。
+服务端会话保存 `(iss, sub)`、`yishan.uid`、`yishan.identity_version` 和加密的 access token。浏览器使用 Frappe 原有的 `sid` cookie 维持业务会话。
 
 ## 站点配置
 
@@ -28,7 +28,7 @@ access token 加密保存在服务端会话中，浏览器只拿到 Frappe 原�
 | `yishan_id_direct_sign_in` | 否 | 默认 `social:yishan-feishu`；设为空字符串时显示移山 ID 的通用登录页 |
 | `yishan_id_max_auth_age_seconds` | 否 | 默认 7200 |
 
-除本机模拟服务外，所有地址必须使用 HTTPS。
+本机 DEV 预览使用 `http://127.0.0.1:8080`。DEV 用专用 MCP 密钥调用 `register_dev_service`，以 `get_service_status` 返回的公开 `oidc_client_id` 配置登录。本机 HTTP 回调必须与登记值完全一致，公开客户端省略 `yishan_id_client_secret`。平台无法向开发者机器的回环地址投递后端退出通知，真实投递联调需要从平台可达的 DEV 回调地址。TEST 和 PRODUCTION 由管理员在 Admin「服务」中开启，并使用 HTTPS 回调。
 
 ```bash
 bench --site frontend set-config yishan_id_issuer https://id.geokeji.com/oidc
@@ -43,14 +43,8 @@ bench --site frontend set-config yishan_id_redirect_uri https://<域名>/api/met
 
 ## 测试
 
-协议层测试不依赖 Frappe，使用本地 ES384 签名的模拟移山 ID，不发出网络请求：
+协议层测试使用本地 ES384 签名的模拟移山 ID。会话测试在已安装 Frappe 的开发容器内运行，模拟身份核验和时钟。两组测试均不请求真实移山 ID：
 
 ```bash
-cd apps/yishan_id_login && ../../env/bin/python -m unittest discover -s yishan_id_login/tests -p 'test_oidc.py' -t .
-```
-
-Frappe 集成测试（回调、绑定、会话复查、后端通知退出）：
-
-```bash
-bench --site frontend run-tests --app yishan_id_login
+rtk proxy docker exec bizbase-backend-1 env/bin/python -m unittest yishan_id_login.tests.test_oidc yishan_id_login.tests.test_session
 ```
