@@ -62,12 +62,12 @@ def signing_key() -> bytes:
 	return hmac.new(get_encryption_key().encode(), b"static_share/v1", hashlib.sha256).digest()
 
 
-def is_author(share, user: str) -> bool:
-	return share.owner == user and is_employee(user)
+def is_author(share, user: str, **identity) -> bool:
+	return share.owner == user and is_employee(user, **identity)
 
 
-def staff_can_view(share, user):
-	if not is_employee(user):
+def staff_can_view(share, user, **identity):
+	if not is_employee(user, **identity):
 		return False
 	if share.access_level == "Internal" or share.owner == user:
 		return True
@@ -111,23 +111,25 @@ def asset_grant(share, version):
 	return token, cookie
 
 
-def session_is_live(user, sid):
+def live_session_data(user, sid):
 	from frappe.sessions import get_expiry_in_seconds
 	from frappe.utils import get_datetime, now_datetime
 
 	if not sid or sid == "Guest":
-		return False
+		return None
 	# Sessions is a framework table, not a DocType. This lookup does not extend the session.
 	table = frappe.qb.DocType("Sessions")
 	record = (frappe.qb.from_(table).select(table.lastupdate, table.sessiondata)
 		.where((table.sid == sid) & (table.user == user) & (table.status == "Active")).run())
 	if not record:
-		return False
+		return None
 	lastupdate, data = record[0]
 	data = frappe.parse_json(data or "{}")
 	if (end := data.get("session_end")) and datetime.now(UTC) >= datetime.fromisoformat(end):
-		return False
-	return (now_datetime() - get_datetime(lastupdate)).total_seconds() <= get_expiry_in_seconds(data.get("session_expiry"))
+		return None
+	if (now_datetime() - get_datetime(lastupdate)).total_seconds() > get_expiry_in_seconds(data.get("session_expiry")):
+		return None
+	return data
 
 
 def asset_allowed(share, version, token):
@@ -142,11 +144,12 @@ def asset_allowed(share, version, token):
 	if not hmac.compare_digest(grant["digest"], hashlib.sha256(cookie.encode()).hexdigest()):
 		return False
 	if user := grant.get("user"):
-		if not session_is_live(user, grant["sid"]):
+		data = live_session_data(user, grant["sid"])
+		if data is None:
 			return False
 		if version != share.current_version:
-			return is_author(share, user)
-		return staff_can_view(share, user)
+			return is_author(share, user, session_data=data)
+		return staff_can_view(share, user, session_data=data)
 	return share.access_level == "Password" and version == share.current_version
 
 

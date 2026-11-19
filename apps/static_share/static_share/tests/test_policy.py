@@ -16,7 +16,7 @@ class SharePolicyTest(unittest.TestCase):
 		self.frappe = self.enter_patch(serve, "frappe")
 		self.frappe.get_roles.side_effect = lambda user: {"manager": ["System Manager"], "seller": ["Sales User"]}.get(user, [])
 		self.employee = self.enter_patch(serve, "is_employee")
-		self.employee.side_effect = lambda user: user not in {"Guest", "left"}
+		self.employee.side_effect = lambda user, **kwargs: user not in {"Guest", "left"}
 
 	def enter_patch(self, module, name):
 		patcher = patch.object(module, name)
@@ -43,12 +43,12 @@ class SharePolicyTest(unittest.TestCase):
 			digest=hashlib.sha256(cookie.encode()).hexdigest())
 		self.frappe.cache.get_value.return_value = grant
 		self.frappe.request.cookies = {serve.CAP_COOKIE: cookie}
-		with patch.object(serve, "session_is_live", return_value=True) as live:
+		with patch.object(serve, "live_session_data", return_value={}) as live:
 			self.assertTrue(serve.asset_allowed(self.share, 1, token))
 			live.assert_called_once_with("invited", "original")
-			live.return_value = False
+			live.return_value = None
 			self.assertFalse(serve.asset_allowed(self.share, 1, token))
-			live.return_value = True
+			live.return_value = {}
 			self.share.allowed_users = []
 			self.assertFalse(serve.asset_allowed(self.share, 1, token))
 			self.share.allowed_users = [SimpleNamespace(user="invited")]
@@ -64,6 +64,20 @@ class SharePolicyTest(unittest.TestCase):
 			self.assertFalse(permissions.is_employee("desk"))
 			self.assertEqual(framework.db.exists.call_args_list[0].args, ("User", {"name": "desk", "enabled": 1, "user_type": "System User"}))
 			self.assertEqual(framework.db.exists.call_args_list[1].args, ("Employee", {"user_id": "desk", "status": "Active"}))
+
+	def test_verified_sso_session_can_upload_without_hr_record(self):
+		with patch.object(permissions, "frappe") as f:
+			f.session.user = "staff"
+			f.session.data = {"user": "staff", "yid_uid": "uid", "yid_token_exp": 300, "yid_lease_until": 200, "yid_verified_at": 100}
+			f.db.exists.side_effect = lambda dt, filters: dt in ("User", "Yishan ID Binding")
+			with patch("time.time", return_value=150):
+				self.assertTrue(permissions.is_employee("staff"))
+				self.assertFalse(permissions.is_employee("other"))
+				f.db.exists.side_effect = lambda dt, filters: dt == "User"
+				self.assertFalse(permissions.is_employee("staff"))
+			f.db.exists.side_effect = lambda dt, filters: dt in ("User", "Yishan ID Binding")
+			with patch("time.time", return_value=301):
+				self.assertFalse(permissions.is_employee("staff"))
 
 	def test_history_is_server_owned(self):
 		doc = Mock(versions=[{"version": 10, "entry": "index.html"}])

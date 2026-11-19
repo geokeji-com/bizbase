@@ -33,3 +33,12 @@ You can only publish private files you uploaded yourself,只能发布自己上�
 Share uploads must be private and uploaded by an active employee,分享源文件必须由在职员工私有上传
 Add at least one allowed user or role,至少添加一位可查看的员工或一个角色
 Password must be at least {0} characters,密码至少需要 {0} 个字符
+Choose report file,选择报告文件
+Share audience,谁可以打开分享链接
+Upload an HTML file or ZIP. The source stays private. Choose who can open the report under Share audience.,上传 HTML 或 ZIP。原文件自动私有保存。请在下方选择谁可以打开分享链接。
+"To upload a report, sign in with your company Yishan ID or ask an administrator to link your Desk account to an active employee.",请使用公司移山 ID 登录后上传，或联系管理员将当前账号关联到在职员工档案。
+Choose an HTML or ZIP file.,请选择 HTML 或 ZIP 文件。
+Upload denied. Check your employee sign-in and permission to edit this share.,上传被拒绝。请确认已使用员工身份登录，并且有权编辑这份分享。
+This file exceeds the site upload limit.,文件超过站点上传大小限制。
+"Upload failed. Check the file size and type, then try again.",上传失败，请检查文件大小和格式后重试。
+Could not finish attaching the report. Refresh the form and try again.,报告附件未处理完成，请刷新表单后重试。

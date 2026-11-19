@@ -1,18 +1,37 @@
 """发布人须是启用的 Desk 用户，且有在职 Employee 绑定。"""
 
 import posixpath
+import time
 from urllib.parse import unquote
 
 import frappe
 
 
-def is_employee(user=None):
+def is_employee(user=None, *, session_data=None):
 	user = user or frappe.session.user
+	if user == "Guest" or not frappe.db.exists("User", {"name": user, "enabled": 1, "user_type": "System User"}):
+		return False
+	if frappe.db.exists("Employee", {"user_id": user, "status": "Active"}):
+		return True
+	# Trust only the SSO session that actually completed identity verification. A binding
+	# by itself, a local login or a role is not evidence of current employment.
+	if session_data is None:
+		if user != frappe.session.user:
+			return False
+		session_data = frappe.session.data or {}
+	now = time.time()
+	uid = session_data.get("yid_uid")
 	return bool(
-		user != "Guest"
-		and frappe.db.exists("User", {"name": user, "enabled": 1, "user_type": "System User"})
-		and frappe.db.exists("Employee", {"user_id": user, "status": "Active"})
+		uid and session_data.get("user") == user
+		and 0 < session_data.get("yid_verified_at", 0) <= now
+		and now < min(session_data.get("yid_token_exp", 0), session_data.get("yid_lease_until", 0))
+		and frappe.db.exists("Yishan ID Binding", {"name": uid, "user": user, "enabled": 1})
 	)
+
+
+@frappe.whitelist()
+def can_upload_report():
+	return is_employee()
 
 
 def is_manager(user):
