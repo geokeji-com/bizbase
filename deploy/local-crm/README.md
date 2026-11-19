@@ -13,7 +13,9 @@
 | Frappe HR | 16.54.1 |
 | HR 提交 | `a01032350ba1b799345b862cb122fa408bf6780e` |
 | GEO 运营 | 0.0.1，空 App |
-| 当前运行镜像 | `geo_operations/local:0.0.1` |
+| 移山 ID 登录 | 0.1.0 |
+| 分享 | 0.1.0 |
+| 本地覆盖配置镜像 | `bizbase/local:static-share-0.1.0` |
 
 基础镜像摘要固定在 `Containerfile` 中。CRM 的该版本声明支持 Frappe `>=16.0.0,<17.0.0`；不使用 `develop` 分支。
 
@@ -50,9 +52,13 @@ HR 此版本要求 Frappe、ERPNext `>=16.50.0,<17.0.0`，当前组合满足。�
 ```bash
 rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.geo_operations \
   -t geo_operations/local:0.0.1 apps/geo_operations
+rtk proxy docker build -f deploy/local-crm/Containerfile.yishan_id_login \
+  -t bizbase/local:yishan-id-0.1.0 apps/yishan_id_login
+rtk proxy docker build -f deploy/local-crm/Containerfile.static_share \
+  -t bizbase/local:static-share-0.1.0 apps/static_share
 ```
 
-覆盖配置将仓库 `apps/geo_operations` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
+覆盖配置将仓库 `apps/geo_operations`、`apps/yishan_id_login` 和 `apps/static_share` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
 
 **安装 CRM / HR / GEO 运营后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为缺少这些 App 代码的上游镜像。此覆盖文件用于本机开发，不作为生产发布配置。**
 
@@ -60,6 +66,7 @@ rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.geo_op
 docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml up -d
 ```
 
+- 分享管理：<http://127.0.0.1:8080/desk/static-share>。已有站点首次安装时沿用下文备份和维护流程，执行 `bench --site frontend install-app static_share`、`migrate`、`clear-cache`。分享内容路径 `/s/` 需要前端代理保留压缩包中的相对路径。
 - Frappe HR：<http://127.0.0.1:8080/desk/hr-setup>
 - GEO 运营空工作区：<http://127.0.0.1:8080/desk/geo_operations>
 - Build：<http://127.0.0.1:8080/desk/build>

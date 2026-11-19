@@ -1,8 +1,13 @@
 # 与项目根目录 pwd.yml 一起使用，复用 bizbase 现有数据库和站点卷。
 x-crm-image: &crm-image
-  image: bizbase/local:yishan-id-0.1.0
+  image: bizbase/local:static-share-0.1.0
   pull_policy: never
   volumes:
+    - type: bind
+      source: ./apps/static_share
+      target: /home/frappe/frappe-bench/apps/static_share
+      bind:
+        create_host_path: false
     - type: bind
       source: ./apps/geo_operations
       target: /home/frappe/frappe-bench/apps/geo_operations
@@ -21,6 +26,7 @@ services:
     <<: *crm-image
     volumes:
       - ./deploy/local-crm/nginx.conf.template:/templates/nginx/frappe.conf.template:ro
+      - ./apps/static_share:/home/frappe/frappe-bench/apps/static_share:ro
       - ./apps/geo_operations:/home/frappe/frappe-bench/apps/geo_operations:ro
       - ./apps/yishan_id_login:/home/frappe/frappe-bench/apps/yishan_id_login:ro
   configurator:

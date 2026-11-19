@@ -51,6 +51,37 @@ server {
 		proxy_pass http://socketio-server;
 	}
 
+	# Only the authenticated share renderer serves expanded bundles.
+	location ^~ /private/files/.static_share/ {
+		return 404;
+	}
+
+	# Preserve bundle paths (including index.html) and enforce share authorization for every asset.
+	location ^~ /s/ {
+		# Signed asset paths should not appear in the default access log or Referer.
+		access_log off;
+		add_header X-Frame-Options SAMEORIGIN always;
+		add_header X-Content-Type-Options nosniff always;
+		add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+		add_header Referrer-Policy no-referrer always;
+		proxy_hide_header Referrer-Policy;
+		proxy_http_version 1.1;
+		proxy_set_header X-Forwarded-For $remote_addr;
+		proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+		proxy_set_header X-Frappe-Site-Name ${FRAPPE_SITE_NAME_HEADER};
+		proxy_set_header Host $http_host;
+		proxy_read_timeout ${PROXY_READ_TIMEOUT};
+		proxy_redirect off;
+		proxy_pass http://backend-server;
+
+		# A sandbox subresource may arrive without a Desk session cookie.
+		location ~ ^/s/[^/]+/c/ {
+			proxy_hide_header Referrer-Policy;
+			proxy_hide_header Set-Cookie;
+			proxy_pass http://backend-server;
+		}
+	}
+
 	location / {
 		rewrite ^(.+)/$ $1 permanent;
 		rewrite ^(.+)/index\.html$ $1 permanent;
