@@ -58,6 +58,50 @@ class SharePolicyTest(unittest.TestCase):
 			self.share.access_salt = "rotated"
 			self.assertFalse(serve.asset_allowed(self.share, 1, token))
 
+	def test_history_and_login_keep_the_requested_share_path(self):
+		from urllib.parse import parse_qs, urlsplit
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		self.share.title = "Report"
+		self.share.versions = [SimpleNamespace(version=1, entry="index.html"), SimpleNamespace(version=2, entry="old.html")]
+		for prefix in ("/s", "/file-share"):
+			base = f"{prefix}/{self.share.name}"
+			self.frappe.request = Request(EnvironBuilder(path=base, query_string="v=2").get_environ())
+			self.frappe.session.user = "Guest"
+			login = serve.serve_wrapper(self.share, base)
+			self.assertEqual(parse_qs(urlsplit(login.location).query), {"redirect-to": [base + "?v=2"]})
+			with patch.object(serve, "log"), patch.object(serve, "asset_grant", return_value=("token", "cookie")):
+				for user, version, entry in (("author", 2, "old.html"), ("invited", 1, "index.html")):
+					self.frappe.session.user = user
+					response = serve.serve_wrapper(self.share, base)
+					directory = f"{base}/c/{version}/token/"
+					self.assertIn(f'src="{directory}{entry}"', response.get_data(as_text=True))
+					self.assertIn(f"Path={directory};", response.headers["Set-Cookie"])
+
+	def test_password_form_post_and_cookie_stay_on_each_alias(self):
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		self.share.title = "Report"
+		self.share.access_level = "Password"
+		self.frappe.session.user = "Guest"
+		self.frappe.cache.get.return_value = 0
+		for prefix in ("/s", "/file-share"):
+			base = f"{prefix}/{self.share.name}"
+			url = base + "?v=2"
+			with patch.object(serve, "signing_key", return_value=b"key"), patch(
+				"frappe.utils.password.get_decrypted_password", return_value="secret"
+			):
+				self.frappe.request = Request(EnvironBuilder(path=base, query_string="v=2").get_environ())
+				gate = serve.serve_wrapper(self.share, base)
+				self.assertIn(f'action="{url}"', gate.get_data(as_text=True))
+				self.frappe.request = Request(EnvironBuilder(path=base, method="POST", query_string="v=2",
+					data={"password": "secret"}).get_environ())
+				response = serve.serve_wrapper(self.share, base)
+				self.assertEqual((response.status_code, response.location), (303, url))
+				self.assertIn(f"Path={base};", response.headers["Set-Cookie"])
+
 	def test_employee_requires_both_database_records(self):
 		with patch.object(permissions, "frappe") as framework:
 			framework.db.exists.side_effect = [True, False]

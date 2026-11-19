@@ -13,8 +13,8 @@
 | Frappe HR | 16.54.1 |
 | HR 提交 | `a01032350ba1b799345b862cb122fa408bf6780e` |
 | GEO 运营 | 0.0.1，空 App |
-| 移山 ID 登录 | 0.1.0 |
-| 分享 | 0.1.0 |
+| 移山 ID | 0.1.0 |
+| 文件分享 | 0.1.0 |
 | 本地覆盖配置镜像 | `bizbase/local:static-share-0.1.0` |
 
 基础镜像摘要固定在 `Containerfile` 中。CRM 的该版本声明支持 Frappe `>=16.0.0,<17.0.0`；不使用 `develop` 分支。
@@ -66,7 +66,8 @@ rtk proxy docker build -f deploy/local-crm/Containerfile.static_share \
 docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml up -d
 ```
 
-- 分享管理：<http://127.0.0.1:8080/desk/static-share>。已有站点首次安装时沿用下文备份和维护流程，执行 `bench --site frontend install-app static_share`、`migrate`、`clear-cache`。分享内容路径 `/s/` 需要前端代理保留压缩包中的相对路径。
+- 移山 ID 管理入口为 <http://127.0.0.1:8080/yishan-id>，管理员可以在此管理账号绑定。
+- 文件分享管理入口为 <http://127.0.0.1:8080/file-share>。已有站点首次安装时沿用下文备份和维护流程，执行 `bench --site frontend install-app static_share`、`migrate`、`clear-cache`。新分享链接使用 `/file-share/<ID>`；代理同时支持旧 `/s/` 链接，并保留压缩包中的相对路径。
 - Frappe HR：<http://127.0.0.1:8080/desk/hr-setup>
 - GEO 运营空工作区：<http://127.0.0.1:8080/desk/geo_operations>
 - Build：<http://127.0.0.1:8080/desk/build>

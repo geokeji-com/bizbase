@@ -1,5 +1,5 @@
 app_name = "yishan_id_login"
-app_title = "移山 ID 登录"
+app_title = "移山 ID"
 app_publisher = "geokeji-com"
 app_description = "站点级移山 ID（飞书员工）登录"
 app_license = "MIT"
@@ -9,9 +9,19 @@ add_to_apps_screen = [
 		"name": app_name,
 		"title": app_title,
 		"logo": "/assets/yishan_id_login/yishan-id.svg",
-		"route": "/desk/yishan-id-binding",
+		"route": "/yishan-id",
 		"has_permission": "yishan_id_login.can_manage_bindings",
 	}
+]
+
+website_redirects = [
+	{"source": "/yishan-id", "target": "/desk/yishan-id-binding", "redirect_http_status": 302},
+	{
+		"source": "/yishan-id/login",
+		"target": "/api/method/yishan_id_login.auth.start",
+		"redirect_http_status": 302,
+		"forward_query_parameters": True,
+	},
 ]
 
 # 每个请求复查移山 ID 会话的在职状态；非移山 ID 会话直接跳过。

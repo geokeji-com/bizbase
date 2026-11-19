@@ -1,7 +1,7 @@
-# 构建上下文为 apps/static_share；先按 Containerfile.yishan_id_login 构建移山 ID 登录镜像。
+# 构建上下文为 apps/static_share；先按 Containerfile.yishan_id_login 构建移山 ID 镜像。
 FROM bizbase/local:yishan-id-0.1.0
 
-LABEL org.opencontainers.image.title="BizBase 本地开发预览（含分享）"
+LABEL org.opencontainers.image.title="BizBase 本地开发预览（含文件分享）"
 USER frappe
 WORKDIR /home/frappe/frappe-bench
 COPY --chown=frappe:frappe . apps/static_share

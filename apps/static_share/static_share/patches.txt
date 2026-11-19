@@ -1,0 +1,4 @@
+[pre_model_sync]
+
+[post_model_sync]
+static_share.migrate_file_share

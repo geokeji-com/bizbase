@@ -30,19 +30,22 @@ CAP_PATTERN = re.compile(r"[A-Za-z0-9_-]{32}\Z")
 
 class ShareRenderer(BaseRenderer):
 	def can_render(self):
-		return self.path == "s" or self.path.startswith("s/")
+		return self.path in ("file-share", "s") or self.path.startswith(("file-share/", "s/"))
 
 	def render(self):
 		parts = frappe.request.path.strip("/").split("/")  # Website resolver strips .html
-		if len(parts) < 2 or not parts[1]:
+		if parts == ["file-share"]:
+			return redirect("/desk/static-share")
+		if len(parts) < 2 or parts[0] not in ("file-share", "s"):
 			return message(404, "链接不存在", "请检查链接是否完整。")
 		share = load_share(parts[1])
 		if not share:
 			return message(404, "链接不存在或已停用", "请联系分享人确认链接。")
+		base = f"/{parts[0]}/{share.name}"
 		if len(parts) >= 5 and parts[2] == "c":
-			return serve_content(share, parts[3], parts[4], "/".join(parts[5:]))
+			return serve_content(share, base, parts[3], parts[4], "/".join(parts[5:]))
 		if len(parts) == 2:
-			return serve_wrapper(share)
+			return serve_wrapper(share, base)
 		return message(404, "链接不存在", "请检查链接是否完整。")
 
 
@@ -178,26 +181,28 @@ def password_cookie(name: str) -> str:
 # ---------- 外壳页 ----------
 
 
-def serve_wrapper(share):
+def serve_wrapper(share, base):
 	user = frappe.session.user
 	request = frappe.request
 
+	requested = cint(request.args.get("v"))
+	url = f"{base}?v={requested}" if requested > 0 else base
+
 	if share.access_level == "Password" and request.method == "POST":
-		return check_password(share)
+		return check_password(share, base, url)
 	if request.method not in ("GET", "HEAD"):
 		return message(405, "不支持的请求", "")
 
 	decision = viewer_decision(share, user)
 	if decision == "login":
-		return redirect(f"/login?redirect-to={quote('/s/' + share.name)}")
+		return redirect(f"/login?redirect-to={quote(url, safe='')}")
 	if decision == "password":
-		return password_page(share)
+		return password_page(share, url)
 	if decision == "denied":
 		log(share, "Denied")
 		return message(403, "没有查看权限", "这份内容只对指定人员开放，请联系分享人。")
 
 	version = share.current_version
-	requested = cint(request.args.get("v"))
 	if requested and requested != version and is_author(share, user):
 		version = requested  # 分享人可预览历史版本
 	entry = next((v.entry for v in share.versions if v.version == version), None)
@@ -206,7 +211,8 @@ def serve_wrapper(share):
 
 	log(share, "Viewed", version)
 	token, cookie = asset_grant(share, version)
-	src = f"/s/{share.name}/c/{version}/{token}/{quote(entry)}"
+	asset_path = f"{base}/c/{version}/{token}/"
+	src = asset_path + quote(entry)
 	title = html.escape(share.title)
 	body = f"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
@@ -219,7 +225,7 @@ def serve_wrapper(share):
 </body></html>"""
 	resp = Response(body, content_type="text/html; charset=utf-8")
 	if cookie:
-		resp.set_cookie(CAP_COOKIE, cookie, max_age=VIEW_TTL, path=f"/s/{share.name}/c/{version}/{token}/",
+		resp.set_cookie(CAP_COOKIE, cookie, max_age=VIEW_TTL, path=asset_path,
 			secure=True, httponly=True, samesite="None")
 	resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-src 'self'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
 	resp.headers["Referrer-Policy"] = "no-referrer"
@@ -231,7 +237,7 @@ def serve_wrapper(share):
 # ---------- 内容 ----------
 
 
-def serve_content(share, version_str: str, token: str, rel: str):
+def serve_content(share, base, version_str: str, token: str, rel: str):
 	if frappe.request.method not in ("GET", "HEAD"):
 		return message(405, "不支持的请求", "")
 	if not re.fullmatch(r"[1-9][0-9]{0,8}", version_str):
@@ -245,7 +251,7 @@ def serve_content(share, version_str: str, token: str, rel: str):
 	root = os.path.join(content_base(), share.name, str(version))
 	kind, target = core.resolve_request(root, rel)
 	if kind == "redirect":
-		return redirect(f"/s/{share.name}/c/{version}/{token}/{quote(target)}")
+		return redirect(f"{base}/c/{version}/{token}/{quote(target)}")
 	if kind != "file":
 		return message(404, "文件不存在", "")
 
@@ -258,7 +264,7 @@ def serve_content(share, version_str: str, token: str, rel: str):
 	# 'self' on a sandboxed document can be opaque. Allow resources only under this
 	# exact absolute content prefix, never the entire Frappe origin or other shares.
 	scheme = "https" if frappe.request.is_secure or frappe.get_request_header("X-Forwarded-Proto") == "https" else "http"
-	assets = f"{scheme}://{frappe.request.host}/s/{share.name}/c/{version}/{token}/"
+	assets = f"{scheme}://{frappe.request.host}{base}/c/{version}/{token}/"
 	resp.headers["Content-Security-Policy"] = (
 		f"sandbox {SANDBOX}; default-src 'none'; script-src 'unsafe-inline' {assets}; "
 		f"style-src 'unsafe-inline' {assets}; img-src data: {assets}; font-src data: {assets}; "
@@ -277,12 +283,12 @@ def serve_content(share, version_str: str, token: str, rel: str):
 # ---------- 密码 ----------
 
 
-def check_password(share):
+def check_password(share, base, url):
 	key = frappe.cache.make_key(f"static_share:pwd:{share.name}:{frappe.local.request_ip}")
 	failures = cint(frappe.cache.get(key))
 	if failures >= PASSWORD_MAX_FAILURES:
 		log(share, "Rate Limited")
-		return password_page(share, "尝试次数过多，请 15 分钟后再试。", 429)
+		return password_page(share, url, "尝试次数过多，请 15 分钟后再试。", 429)
 
 	from frappe.utils.password import get_decrypted_password
 
@@ -293,16 +299,16 @@ def check_password(share):
 		if n == 1:
 			frappe.cache.expire(key, PASSWORD_WINDOW)
 		log(share, "Wrong Password")
-		return password_page(share, "密码不正确。", 401)
+		return password_page(share, url, "密码不正确。", 401)
 
 	frappe.cache.delete(key)
 	token = core.sign(signing_key(), "pwd", share.name, share.access_salt, PASSWORD_TTL)
-	resp = redirect(f"/s/{share.name}", 303)
+	resp = redirect(url, 303)
 	resp.set_cookie(
 		password_cookie(share.name),
 		token,
 		max_age=PASSWORD_TTL,
-		path=f"/s/{share.name}",
+		path=base,
 		httponly=True,
 		samesite="Lax",
 		secure=frappe.request.is_secure or frappe.get_request_header("X-Forwarded-Proto") == "https",
@@ -310,14 +316,14 @@ def check_password(share):
 	return resp
 
 
-def password_page(share, error: str = "", status: int = 200):
+def password_page(share, url, error: str = "", status: int = 200):
 	csrf = ""
 	if frappe.session.user != "Guest":
 		from frappe.sessions import get_csrf_token
 
 		csrf = f'<input type="hidden" name="csrf_token" value="{html.escape(get_csrf_token())}">'
 	err = f'<p class="err">{html.escape(error)}</p>' if error else ""
-	body = f"""<form method="post" action="/s/{share.name}">
+	body = f"""<form method="post" action="{html.escape(url)}">
 {csrf}
 <label for="pw">访问密码</label>
 <input id="pw" name="password" type="password" autocomplete="current-password" required autofocus>

@@ -1,6 +1,6 @@
 [project]
 name = "static_share"
-description = "分享：员工发布 HTML 等静态内容"
+description = "文件分享：员工发布 HTML 等静态内容"
 authors = [{ name = "geokeji-com" }]
 requires-python = ">=3.14"
 readme = "README.md"

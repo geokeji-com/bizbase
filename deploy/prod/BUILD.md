@@ -1,6 +1,6 @@
 # 生产镜像
 
-仓库根目录构建固定摘要的官方 linux/amd64 发行包，保留 Frappe 16.56.0、ERPNext 16.55.0 和原版静态资源，加入 GEO 运营、移山 ID 登录和分享。镜像内置已在预览验收的分享路径 Nginx 模板。Dockerfile 专用忽略文件限制构建上下文。
+仓库根目录构建固定摘要的官方 linux/amd64 发行包，保留 Frappe 16.56.0、ERPNext 16.55.0 和原版静态资源，加入 GEO 运营、移山 ID 和文件分享。镜像内置已在预览验收的分享路径 Nginx 模板。Dockerfile 专用忽略文件限制构建上下文。
 
 ```sh
 rtk proxy docker buildx build --platform linux/amd64 --load -t bizbase/prod:erpnext-share-candidate -f deploy/prod/Containerfile .

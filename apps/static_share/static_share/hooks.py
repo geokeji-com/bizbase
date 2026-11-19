@@ -1,5 +1,5 @@
 app_name = "static_share"
-app_title = "分享"
+app_title = "文件分享"
 app_publisher = "geokeji-com"
 app_description = "员工上传 HTML 等静态内容，按内部、指定人员、密码或公开范围分享"
 app_license = "MIT"
@@ -9,12 +9,12 @@ add_to_apps_screen = [
 		"name": app_name,
 		"title": app_title,
 		"logo": "/assets/static_share/icon.svg",
-		"route": "/desk/static-share",
+		"route": "/file-share",
 		"has_permission": "static_share.permissions.can_open_desk",
 	}
 ]
 
-# /s/<分享 ID>[/c/<版本>/<令牌>/<文件路径>] 由本 App 渲染。
+# /file-share 为管理入口；/file-share/<ID> 与旧 /s/<ID> 共用渲染器。
 page_renderer = ["static_share.serve.ShareRenderer"]
 
 permission_query_conditions = {

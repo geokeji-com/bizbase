@@ -34,7 +34,7 @@ from yishan_id_login.oidc import (
 BINDING_DOCTYPE = "Yishan ID Binding"
 TRANSACTION_TTL_SECONDS = 600
 BROWSER_COOKIE = "yid_login"
-START_PATH = "/api/method/yishan_id_login.auth.start"
+START_PATH = "/yishan-id/login"
 RESERVED_USERS = ("Administrator", "Guest")
 
 provider = Provider()
@@ -308,7 +308,7 @@ def revoke_sessions(issuer: str, sub: str | None = None, sid: str | None = None,
 
 def error_page(message: str, http_status_code: int = 400):
 	frappe.respond_as_web_page(
-		_("Yishan ID Login"),
+		_("Yishan ID"),
 		message,
 		http_status_code=http_status_code,
 		indicator_color="red",

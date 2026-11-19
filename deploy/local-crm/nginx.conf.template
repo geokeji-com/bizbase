@@ -57,7 +57,7 @@ server {
 	}
 
 	# Preserve bundle paths (including index.html) and enforce share authorization for every asset.
-	location ^~ /s/ {
+	location ~ ^/(?:file-share(?:/|$)|s/) {
 		# Signed asset paths should not appear in the default access log or Referer.
 		access_log off;
 		add_header X-Frame-Options SAMEORIGIN always;
@@ -75,7 +75,7 @@ server {
 		proxy_pass http://backend-server;
 
 		# A sandbox subresource may arrive without a Desk session cookie.
-		location ~ ^/s/[^/]+/c/ {
+		location ~ ^/(?:file-share|s)/[^/]+/c/ {
 			proxy_hide_header Referrer-Policy;
 			proxy_hide_header Set-Cookie;
 			proxy_pass http://backend-server;

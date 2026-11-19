@@ -55,7 +55,7 @@ class StaticShare(Document):
 			self._ingest_upload()
 		elif not any(v.version == self.current_version for v in self.versions):
 			frappe.throw(_("Version {0} does not exist").format(self.current_version))
-		self.share_url = f"/s/{self.name}"
+		self.share_url = f"/file-share/{self.name}"
 		if not before or self._access_changed(before) or before.current_version != self.current_version:
 			self.access_salt = secrets.token_hex(16)
 		else:

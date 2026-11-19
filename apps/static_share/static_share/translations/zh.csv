@@ -1,5 +1,5 @@
-static_share,静态文件分享
-Static Share,静态文件分享
+static_share,文件分享
+Static Share,文件分享
 Short ID,短链 ID
 Access Level,访问权限
 Internal,内部可见
@@ -8,8 +8,10 @@ Public+Password,公开+密码
 Access Password,访问密码
 Allowed Users,允许的用户
 Allowed Roles,允许的角色
-Static Share User,分享用户
-Static Share Role,分享角色
+Static Share User,文件分享用户
+Static Share Role,文件分享角色
+Static Share Version,文件分享版本
+Static Share Access Log,文件分享访问记录
 Share not found,分享不存在
 This share has been disabled,此分享已停用
 You don't have permission to access this share,您无权访问此分享

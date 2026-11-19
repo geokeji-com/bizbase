@@ -1,6 +1,6 @@
 [project]
 name = "yishan_id_login"
-description = "移山 ID 登录"
+description = "移山 ID"
 authors = [{ name = "geokeji-com" }]
 requires-python = ">=3.14"
 readme = "README.md"

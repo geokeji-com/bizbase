@@ -12,14 +12,16 @@ RDS 数据库 `bizbase` 的业务表只放在 `bizbase_app` schema，不需要 `
 
 升级或录入正式业务数据前，确认 RDS 备份覆盖和可恢复性，并为附件、站点配置（含加密密钥）配置受保护的异机备份和恢复演练。只有数据库快照不能恢复附件与密钥。
 
-## 已有站点首次加入 ERPNext 与分享
+## 已有站点首次加入 ERPNext 与文件分享
 
 1. 在获准的隔离 RDS 测试库演练安装、迁移及恢复。生产维护前记录当前镜像 ID、站点已装应用、Compose 配置和持久卷 `sites/apps.txt`。核对 RDS 恢复点并保留同一检查点的站点配置、密钥及附件备份。
 2. 在维护窗口开启站点维护模式，停止本站 worker 和 scheduler，完成一致性备份。将已验证的新镜像设为本站 `BIZBASE_IMAGE`。在宿主机持久化的 `/var/lib/bizbase-prod/sites/apps.txt` 保留原有应用，各追加一行缺失的 `erpnext`、`static_share`。切换 backend 后用 `bench --site bizbase.geokeji.com list-apps` 核对起点。
 3. 在新 backend 中仅对缺失应用依次运行 `bench --site bizbase.geokeji.com install-app erpnext` 和 `bench --site bizbase.geokeji.com install-app static_share`。随后执行 `bench --site bizbase.geokeji.com migrate`、`bench --site bizbase.geokeji.com clear-cache`。保留现有用户、绑定和站点配置。
 4. 用同一镜像恢复全部五个服务，关闭维护模式。从 HTTPS 入口验证登录、ERPNext 资源、Employee 和分享权限。若迁移失败，在维护模式下恢复同一检查点的数据库、站点文件、应用清单、Compose 配置与旧镜像。
 
-## 可选：移山 ID 登录
+管理入口为 `/file-share`（文件分享）和 `/yishan-id`（移山 ID）。新生成的文件分享链接使用 `/file-share/<ID>`；旧 `/s/<ID>` 及已有 Desk 管理书签继续可用。
+
+## 移山 ID
 
 发布包含 `managed.py` 的镜像及新版 Compose 时，将 `sync_yishan_id.py` 放在 `/opt/bizbase-prod/`，两个同名 service/timer 单元放在 `/etc/systemd/system/`。由 root 执行 `systemctl daemon-reload`、`systemctl start bizbase-yishan-id.service`、`systemctl enable --now bizbase-yishan-id.timer`，再用新版 Compose 重建应用容器。不要重跑建站脚本。
 
