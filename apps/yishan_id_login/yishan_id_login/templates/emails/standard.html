@@ -1,0 +1,3 @@
+{% set brand_name = "移山科技 数据中台(BizBase)" if with_container or header or brand_name else none %}
+{% set brand_logo = none %}
+{% include "frappe/templates/emails/standard.html" %}

@@ -7,6 +7,10 @@ COPY --chown=frappe:0 apps/geo_operations apps/geo_operations
 COPY --chown=frappe:0 apps/yishan_id_login apps/yishan_id_login
 COPY --chown=frappe:0 apps/static_share apps/static_share
 COPY deploy/local-crm/nginx.conf.template /templates/nginx/frappe.conf.template
+COPY deploy/prod/localize_mail_subjects.py deploy/prod/localize_erp_mail.py deploy/prod/localize_erp_templates.py deploy/prod/check_mail_defaults.py /opt/bizbase-mail/
+RUN env/bin/python /opt/bizbase-mail/localize_mail_subjects.py \
+    && env/bin/python /opt/bizbase-mail/localize_erp_mail.py --image \
+    && env/bin/python /opt/bizbase-mail/localize_erp_templates.py
 RUN printf '%s\n' frappe erpnext geo_operations yishan_id_login static_share > sites/apps.txt \
     && env/bin/pip install --no-cache-dir --disable-pip-version-check --no-deps -e apps/geo_operations -e apps/yishan_id_login -e apps/static_share \
     && env/bin/pip check \

@@ -1,0 +1,6 @@
+<h1 class="email-title">您收到了加入{{ ("BizBase" if title == "Frappe" else title) | e }}的邀请</h1>
+<p>{{ invited_by | e }} 邀请您加入{{ ("BizBase" if title == "Frappe" else title) | e }}。请在 {{ expiry_days | e }} 天内接受邀请。</p>
+<p class="email-action"><a class="email-btn email-btn-primary" href="{{ invite_link | e }}">接受邀请</a></p>
+<p>如果按钮无法打开，请将下面的链接复制到浏览器中打开。</p>
+<p><a href="{{ invite_link | e }}">{{ invite_link | e }}</a></p>
+<p>如果您没有预期收到邀请，请忽略这封邮件。</p>

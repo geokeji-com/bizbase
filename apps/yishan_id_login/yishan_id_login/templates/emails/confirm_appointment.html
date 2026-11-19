@@ -1,0 +1,6 @@
+<p>{{ full_name | e }}{% if last_name %} {{ last_name | e }}{% endif %}，您好！</p>
+<p>{{ site_url | e }} 已为您创建预约。请在 {{ expiry_minutes | e }} 分钟内验证邮箱并确认预约。</p>
+<p style="margin: 30px 0;">
+	<a href="{{ link | e }}" rel="nofollow" style="padding: 8px 20px; background-color: #7575ff; color: #fff; border-radius: 4px; text-decoration: none;">验证邮箱并确认预约</a>
+</p>
+<p style="font-size: 85%;">您也可以复制以下链接，在浏览器中打开：<a href="{{ link | e }}">{{ link | e }}</a></p>

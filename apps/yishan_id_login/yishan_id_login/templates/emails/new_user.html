@@ -1,0 +1,7 @@
+<h1 class="email-title">欢迎使用 BizBase</h1>
+<p>{{ first_name | e }}，您好！您的账号已创建，登录账号为 <strong>{{ user | e }}</strong>。</p>
+<p>如果您已绑定移山 ID，可从<a href="{{ site_url | e }}/login">登录页</a>选择移山 ID 登录。如果要使用密码登录，请通过下面的专属链接设置密码。</p>
+<p class="email-action"><a class="email-btn email-btn-primary" href="{{ link | e }}">设置我的密码</a></p>
+<p>如果按钮无法打开，请将下面的链接复制到浏览器中打开。</p>
+<p><a href="{{ link | e }}">{{ link | e }}</a></p>
+<p>如果您没有预期收到这封邮件，请忽略，并向管理员核实。请勿转发此链接。</p>

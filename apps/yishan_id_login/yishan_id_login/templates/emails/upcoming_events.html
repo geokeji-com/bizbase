@@ -1,0 +1,7 @@
+{% for event in events %}
+<p>
+	<span class="text-bold">{{ event.starts_on }}</span> · {{ event.subject }}
+	{% if event.description %}<br><span class="text-muted">{{ event.description }}</span>{% endif %}
+</p>
+{% endfor %}
+<p class="more-info">本摘要列出了已设置提醒的日历事项。</p>

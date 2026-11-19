@@ -1,0 +1,31 @@
+<p>系统已根据物料的重订货点自动生成以下物料需求单。</p>
+{% for mr in mr_list -%}
+<div style="margin-bottom: 30px;">
+	<h4 style="margin-bottom: 5px;">{{ frappe.utils.get_link_to_form("Material Request", mr.name) }}</h4>
+	<table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+		<thead>
+			<tr>
+				<th style="border: 1px solid #d1d8dd; width: 35%; text-align: left; padding: 5px;">物料</th>
+				<th style="border: 1px solid #d1d8dd; width: 35%; text-align: left; padding: 5px;">仓库</th>
+				<th style="border: 1px solid #d1d8dd; width: 10%; text-align: right; padding: 5px;">数量</th>
+				<th style="border: 1px solid #d1d8dd; width: 10%; text-align: left; padding: 5px;">单位</th>
+				<th style="border: 1px solid #d1d8dd; width: 10%; text-align: right; padding: 5px;">预计库存量</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for item in mr.get("items") -%}
+			<tr>
+				<td style="border: 1px solid #d1d8dd; padding: 5px;">
+					<b>{{ item.item_code | e }}</b>
+					{% if item.item_code != item.item_name -%} <br> {{ item.item_name | e }} {%- endif %}
+				</td>
+				<td style="border: 1px solid #d1d8dd; padding: 5px;">{{ item.warehouse | e }}</td>
+				<td style="border: 1px solid #d1d8dd; text-align: right; padding: 5px;">{{ item.qty | e }}</td>
+				<td style="border: 1px solid #d1d8dd; padding: 5px;">{{ item.uom | e }}</td>
+				<td style="border: 1px solid #d1d8dd; text-align: right; padding: 5px;">{{ frappe.utils.flt(item.projected_on_hand) + frappe.utils.flt(item.stock_qty) }}</td>
+			</tr>
+			{%- endfor %}
+		</tbody>
+	</table>
+</div>
+{%- endfor %}

@@ -1,0 +1,25 @@
+<h3>你关注的文档有更新</h3>
+{% for doc in docinfo %}
+<div class="gray-container follow-panel">
+	<div class="follow-panel-title text-medium">
+		<a href="{{ doc.reference_url }}">{{ _(doc.reference_doctype, lang='zh') | e }} · {{ doc.reference_docname }}</a>
+	</div>
+	<ul class="list-unstyled follow-timeline">
+	{% for item in timeline if item.doctype == doc.reference_doctype and item.doc_name == doc.reference_docname %}
+		{% set change = item.data %}
+		{% if item.type == 'comment' %}
+		<li><span class="text-muted">{{ change.time }}</span> <b>{{ change.comment | e }}</b>
+			{% set author = change.by | striptags | trim %}
+			{% if author.startswith('Commented by : ') %}（评论人：{{ author.removeprefix('Commented by : ') | e }}）{% elif author.startswith('By : ') %}（操作人：{{ author.removeprefix('By : ') | e }}）{% elif author %}（{{ author | e }}）{% endif %}
+		</li>
+		{% elif item.type == 'row added' %}
+		<li><span class="text-muted">{{ change.time }}</span> {{ item.by | e }} 在表格字段「{{ change.to | e }}」中新增了一行。</li>
+		{% elif item.type == 'field changed' %}
+		<li><span class="text-muted">{{ change.time }}</span> {{ item.by | e }} 将字段「{{ change.field | e }}」从「{{ change.from | e }}」改为「{{ change.to | e }}」。</li>
+		{% elif item.type == 'row changed' %}
+		<li><span class="text-muted">{{ change.time }}</span> {{ item.by | e }} 将表格「{{ change.table_field | e }}」第 {{ change.row }} 行的「{{ change.field | e }}」从「{{ change.from | e }}」改为「{{ change.to | e }}」。</li>
+		{% endif %}
+	{% endfor %}
+	</ul>
+</div>
+{% endfor %}

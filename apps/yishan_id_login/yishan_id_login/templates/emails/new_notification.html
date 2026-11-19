@@ -1,0 +1,7 @@
+<p>{{ body_content }}</p>
+{% if description %}
+<blockquote>{{ description | markdown }}</blockquote>
+{% endif %}
+{% if doc_link is defined and doc_link %}
+<div class="more-info"><a href="{{ doc_link }}">打开文档</a></div>
+{% endif %}

@@ -1,0 +1,3 @@
+<p>{% if auto_repeat_failed_for.startswith('Auto Repeat failed for ') %}自动重复任务执行失败：{{ auto_repeat_failed_for.removeprefix('Auto Repeat failed for ') }}{% else %}{{ auto_repeat_failed_for }}{% endif %}</p>
+<p>系统已停用此单据的自动重复任务。</p>
+<p>{% if error_log_message.startswith('Check the Error Log for more information: ') %}请查看错误日志了解详情：{{ error_log_message.removeprefix('Check the Error Log for more information: ') }}{% else %}{{ error_log_message }}{% endif %}</p>

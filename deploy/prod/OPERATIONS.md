@@ -27,6 +27,12 @@ RDS 数据库 `bizbase` 的业务表只放在 `bizbase_app` schema，不需要 `
 
 正式站通过第一方导航脚本识别工作台路由。官方 Clarity 脚本只在权限隔离的空白统计页中运行，纯跳转、API 请求及上传文件内部的资源加载不单独计次。这个项目用于比较功能访问量；录屏和热图只会对应空白统计页，独立用户数也不适合用来统计员工人数。
 
+## 默认邮件
+
+站点管理员可在 `/desk/email-template` 编辑「BizBase · 新用户欢迎」和「BizBase · 重置密码」，在 `/desk/system-settings` 的邮件页选择默认模板。邮箱一次性登录、邀请、安全提醒及其他内置模板随镜像发布。发信时统一在主题中显示「移山科技 数据中台(BizBase)」。HTML 邮件页脚内嵌移山科技官网标志并链接 `https://geokeji.com/`，纯文本页脚保留同一地址。标志取自官网页头 `https://static.geokeji.com/assets/yishan-logo-black.svg?v=2534beb544`，邮件使用其 PNG 版本。
+
+首次启用新版邮件镜像时，在已有站点运行 `bench --site bizbase.geokeji.com execute yishan_id_login.mail_defaults.install` 创建上述两份记录并关闭框架宣传页脚。安装器保留同名模板已有正文。ERPNext 的物料收货及新会计年度通知另用 `env/bin/python /opt/bizbase-mail/localize_erp_mail.py --site bizbase.geokeji.com` 同步标准记录。两个操作都可重跑。使用 `env/bin/python /opt/bizbase-mail/check_mail_defaults.py bizbase.geokeji.com` 可用示例数据验证默认账号邮件，测试在邮件入队前截获内容。若管理员已自行修改内置文案，应相应调整验收断言。
+
 ## 移山 ID
 
 发布包含 `managed.py` 的镜像及新版 Compose 时，将 `sync_yishan_id.py` 放在 `/opt/bizbase-prod/`，两个同名 service/timer 单元放在 `/etc/systemd/system/`。由 root 执行 `systemctl daemon-reload`、`systemctl start bizbase-yishan-id.service`、`systemctl enable --now bizbase-yishan-id.timer`，再用新版 Compose 重建应用容器。不要重跑建站脚本。

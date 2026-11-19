@@ -1,0 +1,7 @@
+<p>{{ message }}</p>
+<p>
+	{% for action in actions %}
+	<a class="btn{% if action.is_primary %} btn-primary{% endif %}" style="margin-right: 8px" href="{{ action.action_link }}">{{ {'Approve': '批准', 'Reject': '驳回'}.get(action.action_name, action.action_name) | e }}</a>
+	{% endfor %}
+</p>
+<div class="more-info">这封邮件包含保密信息，请勿转发。</div>
