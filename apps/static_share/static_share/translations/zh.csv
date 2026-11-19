@@ -1,0 +1,35 @@
+static_share,静态文件分享
+Static Share,静态文件分享
+Short ID,短链 ID
+Access Level,访问权限
+Internal,内部可见
+Public,完全公开
+Public+Password,公开+密码
+Access Password,访问密码
+Allowed Users,允许的用户
+Allowed Roles,允许的角色
+Static Share User,分享用户
+Static Share Role,分享角色
+Share not found,分享不存在
+This share has been disabled,此分享已停用
+You don't have permission to access this share,您无权访问此分享
+Access denied,访问被拒绝
+This share does not require a password,此分享无需密码
+Too many attempts. Please try again later.,尝试次数过多，请稍后再试
+Incorrect password,密码错误
+Specified,指定人员
+Password,密码
+Share Link,分享链接
+Copy Share Link,复制分享链接
+Upload New Version,上传新版本
+Versions,版本记录
+Current Version,当前版本
+Entry Page,首页
+Who Can View,谁可以查看
+Choose a private local source file,请选择私有的本地源文件
+Version history is managed by the server,版本记录由系统生成，不能手工修改
+Only active employees with Desk access can publish,只有在职且已启用 Desk 账号的员工可以发布
+You can only publish private files you uploaded yourself,只能发布自己上传的私有文件
+Share uploads must be private and uploaded by an active employee,分享源文件必须由在职员工私有上传
+Add at least one allowed user or role,至少添加一位可查看的员工或一个角色
+Password must be at least {0} characters,密码至少需要 {0} 个字符
