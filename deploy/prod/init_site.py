@@ -17,7 +17,7 @@ from frappe.utils.scheduler import enable_scheduler
 from frappe.utils.synchronization import filelock
 
 SITE = "bizbase.geokeji.com"
-APPS = ("frappe", "geo_operations", "yishan_id_login")
+APPS = ("frappe", "erpnext", "geo_operations", "yishan_id_login", "static_share")
 SEED_HASH = "b35b740c07c0450f6d93ad4ec07d7e68057ea81caa6efbbcd7cd2bb28c2bbb35"
 
 

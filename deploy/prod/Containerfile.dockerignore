@@ -4,10 +4,11 @@
 !apps/geo_operations/**
 !apps/yishan_id_login/
 !apps/yishan_id_login/**
-!resources/
-!resources/core/
-!resources/core/main-entrypoint.sh
-!resources/core/start.sh
+!apps/static_share/
+!apps/static_share/**
+!deploy/
+!deploy/local-crm/
+!deploy/local-crm/nginx.conf.template
 **/__pycache__
 **/.git
 **/.env*

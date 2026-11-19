@@ -52,7 +52,7 @@ def main():
         folder.mkdir(mode=0o700)
         os.chown(folder, UID, 0)
     (sites / 'assets').symlink_to('/home/frappe/frappe-bench/assets')
-    create(sites / 'apps.txt', 'frappe\ngeo_operations\nyishan_id_login')
+    create(sites / 'apps.txt', 'frappe\nerpnext\ngeo_operations\nyishan_id_login\nstatic_share')
     create(sites / 'common_site_config.json', json.dumps(common, indent=2))
     create(sites / SITE / 'site_config.json', json.dumps(site, indent=2))
     # The parent is root-only on the host. Mount this file only for the init job.
