@@ -1,10 +1,12 @@
 # BizBase 会话交接
 
-更新：2026-11-18。用途：新会话无需重问完整业务背景，即可从原预览环境的 Build 继续。本文件整理对话与已有证据；决策原文以 [decisions.md](decisions.md) 为准，运行状态在接手时重新核对。
+**当前交接（2026-11-19）**　新窗口先读[第四步评审与第五步起点](2026-11-19-planning-handoff.md)。前三步已完成，[第四步产品评审总览（HTML）](../planning/product-review.html)可在一页阅读交付地图、PRD、验收用例并操作原型。第五步尚未实施。业务决定以 [decisions.md](decisions.md) 为准。
 
-## 1. 先读：当前停在哪里
+以下第 1–8 节保留 2026-11-18 的环境、业务背景和撤回记录。其运行状态、待定事项和操作顺序均为当日快照。
 
-**最新用户指令是 D-016：应用所有相关名称统一为「GEO 运营」，技术标识统一为 `geo_operations`，验证后提交并推送。** 已迁移原站点的应用安装身份、标准模块及工作区；新入口 `/desk/geo_operations`，源码 `apps/geo_operations`。D-012 的撤回边界保留。
+## 1. 11 月 18 日的预览环境
+
+**当时的 D-016 指令是将应用名称统一为「GEO 运营」，技术标识统一为 `geo_operations`，验证后提交并推送。** 已迁移原站点的应用安装身份、标准模块及工作区；新入口 `/desk/geo_operations`，源码 `apps/geo_operations`。D-012 的撤回边界保留。
 
 - HR 入口：<http://127.0.0.1:8080/desk/hr-setup>；镜像 `geo_operations/local:0.0.1`。员工与薪资等业务设置尚未配置。
 - 原入口：<http://127.0.0.1:8080/desk/build>；Compose 项目 `bizbase`，站点 `frontend`。
@@ -115,4 +117,4 @@ rtk proxy docker exec bizbase-backend-1 bench --site frontend list-apps
 
 沟通和文档用简体中文，技术标识保留英文。第三方编码/配置先查 Context7；最近查询因额度耗尽失败时，使用了本机对应版本源码，不应声称取得了未查询的文档。生产界面使用真实数据和准确空状态，演示数据与正式路由隔离。用户希望已授权的必要动作直接完成，遇到需要用户决定的具体新范围再提出问题。
 
-给新会话的恢复句：**“请先读取 docs/cycle/HANDOFF.md，按 D-016 核对原站点的空 GEO 运营 App、源码挂载和 Build 开发模式；保留 D-012 已撤回目录实验的历史边界，接下来我会说明要配置的内容。”**
+当前恢复句及所需的只读核对命令见[11 月 19 日交接](2026-11-19-planning-handoff.md)。
