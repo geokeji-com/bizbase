@@ -14,7 +14,7 @@ import requests
 SOURCE = Path('/etc/bizbase/connections.ini')
 TARGET = Path('/etc/bizbase/yishan-runtime/settings.json')
 ISSUER = 'https://id.geokeji.com/oidc'
-CALLBACK = 'https://bizbase.geokeji.com/api/method/yishan_id_login.auth.callback'
+CALLBACK = 'https://bizbase.geokeji.com/api/method/yishan_id.auth.callback'
 
 
 def snapshot(source, http):

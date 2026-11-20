@@ -21,12 +21,12 @@ OTP_SUBJECT_END = (f'\n\t\t{OTP_SETTING}\n\t)\n'
 OTP_SUBJECT_START = 'def get_email_subject_for_2fa(kwargs_dict):\n\t"""Get email subject for 2fa."""\n\t'
 PATCHES = {
     "email/doctype/email_queue/email_queue.py": [
-        ("\t\tself.subject = subject\n", "\t\tfrom yishan_id_login.mail_brand import subject_line\n\n\t\tself.subject = subject_line(subject)\n"),
+        ("\t\tself.subject = subject\n", "\t\tfrom yishan_id.mail_brand import subject_line\n\n\t\tself.subject = subject_line(subject)\n"),
     ],
     "email/email_body.py": [
-        ("\t\tself.subject = subject\n", "\t\tfrom yishan_id_login.mail_brand import subject_line\n\n\t\tself.subject = subject_line(subject)\n"),
-        ("\t\tself.set_part_html(formatted, inline_images)", "\t\tfrom yishan_id_login.mail_brand import html_with_footer\n\n\t\tself.set_part_html(html_with_footer(formatted), inline_images)"),
-        ('part = MIMEText(message, "plain", "utf-8", policy=policy.SMTP)', 'from yishan_id_login.mail_brand import text_with_footer\n\n\t\tpart = MIMEText(text_with_footer(message), "plain", "utf-8", policy=policy.SMTP)'),
+        ("\t\tself.subject = subject\n", "\t\tfrom yishan_id.mail_brand import subject_line\n\n\t\tself.subject = subject_line(subject)\n"),
+        ("\t\tself.set_part_html(formatted, inline_images)", "\t\tfrom yishan_id.mail_brand import html_with_footer\n\n\t\tself.set_part_html(html_with_footer(formatted), inline_images)"),
+        ('part = MIMEText(message, "plain", "utf-8", policy=policy.SMTP)', 'from yishan_id.mail_brand import text_with_footer\n\n\t\tpart = MIMEText(text_with_footer(message), "plain", "utf-8", policy=policy.SMTP)'),
     ],
     "www/login.py": [
         ('subject = _("Login To {0}").format(app_name)',

@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 import requests
 
 import sync_yishan_id as sync
-from yishan_id_login import managed
+from yishan_id import managed
 
 
 class AvailabilityTest(unittest.TestCase):
@@ -65,7 +65,7 @@ class AvailabilityTest(unittest.TestCase):
             self.assertIsNone(self.load(self.valid))
 
     def test_guest_login_page_only_adds_verified_provider(self):
-        from yishan_id_login import auth
+        from yishan_id import auth
 
         context = {'for_test': 'login.html', 'provider_logins': [{'name': 'existing'}]}
         with patch.dict(os.environ, {'BIZBASE_YISHAN_ID_CONFIG': str(self.runtime)}), \

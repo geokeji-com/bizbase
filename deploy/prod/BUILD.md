@@ -1,11 +1,21 @@
-# 生产镜像
+# 生产候选镜像
 
-仓库根目录构建固定摘要的官方 linux/amd64 发行包，保留 Frappe 16.56.0、ERPNext 16.55.0 和原版静态资源，加入 GEO 运营、移山 ID 和文件分享。镜像内置已在预览验收的分享路径 Nginx 模板。Dockerfile 专用忽略文件限制构建上下文。
+从仓库根目录构建 `linux/amd64`。本地 PG 和生产共用应用安装层与兼容补丁，生产最后一层加入邮件本地化。CRM 浏览器资源取自本机已验收的 `bizbase/erpnext-crm:16.55.0-16.0.4`，构建时核对源码提交 `9ace234fceb3c5e7bd630b74f44ba1779e831abe`。Python 依赖在固定的 amd64 ERPNext 镜像里安装。`INSIGHTS_SOURCE` 指向 Insights 3.50.1（`4cdc09e0ec15edfaefb2a9d180efd1b6b552394e`）的应用目录，包含与该提交匹配的前端产物。静态资源的构建步骤见[本地 PG 构建脚本](../local-pg/build.sh)。也可从已验证的本地最终镜像提取同一份应用作为 `INSIGHTS_SOURCE`。
 
 ```sh
-rtk proxy docker buildx build --platform linux/amd64 --load -t bizbase/prod:erpnext-share-candidate -f deploy/prod/Containerfile .
-rtk proxy docker image inspect bizbase/prod:erpnext-share-candidate --format '{{.Os}}/{{.Architecture}} {{.Id}}'
-rtk proxy docker run --platform linux/amd64 --rm --network none --entrypoint sh bizbase/prod:erpnext-share-candidate -ec 'env/bin/pip check && env/bin/python -m unittest static_share.tests.test_core static_share.tests.test_policy yishan_id_login.tests.test_oidc yishan_id_login.tests.test_session'
+# 下面的临时目录只提取应用文件。镜像内的站点配置和数据卷不进入构建上下文。
+rtk proxy bash -ec 'd=$(mktemp -d); docker run --rm --pull=never --network none --entrypoint tar bizbase/local:postgres-16 -C apps/insights --exclude=__pycache__ -cf - insights pyproject.toml README.md | tar -xf - -C "$d"; test -s "$d/insights/www/_insights.html"; echo "$d"'
+# 将上一条输出的目录设为 INSIGHTS_SOURCE。
+rtk proxy docker buildx build --platform linux/amd64 --load \
+  --target crm -f deploy/prod/Containerfile -t bizbase/erpnext-crm:16.55.0-16.0.4-amd64 .
+rtk proxy docker buildx build --platform linux/amd64 --load \
+  --build-arg CRM_IMAGE=bizbase/erpnext-crm:16.55.0-16.0.4-amd64 \
+  --build-context insights="$INSIGHTS_SOURCE" -f deploy/local-pg/Containerfile \
+  -t bizbase/platform:pg-amd64 .
+rtk proxy docker buildx build --platform linux/amd64 --load \
+  -t bizbase/prod:pg-candidate -f deploy/prod/Containerfile .
+rtk proxy docker image inspect bizbase/prod:pg-candidate --format '{{.Os}}/{{.Architecture}} {{.Id}}'
+rtk proxy docker run --platform linux/amd64 --rm --network none --entrypoint sh bizbase/prod:pg-candidate -ec 'env/bin/python /opt/bizbase/pg_compat.py --check && env/bin/python -m unittest file_share.tests.test_core file_share.tests.test_policy yishan_id.tests.test_oidc yishan_id.tests.test_session'
 ```
 
-发布时记录确切镜像 ID 和 Git 提交，生产五个进程使用同一镜像。可以用 `docker save` 和 `docker load` 转移镜像并核对两端 ID。持久站点的应用安装顺序见[生产运维](OPERATIONS.md)。
+发布记录应包含实际通过验收的镜像 ID、Git 提交及 PG 演练结果。现有生产站点更改安装清单需要维护窗口，步骤见[生产运维](OPERATIONS.md)。

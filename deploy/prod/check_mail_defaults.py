@@ -33,7 +33,7 @@ def verify(isolated=False):
         cid = images[0]["src"][4:]
         parts = [p for p in mail.walk() if p.get("Content-ID") == f"<{cid}>"]
         assert len(parts) == 1 and parts[0].get_content_disposition() == "inline" and parts[0].get_content_type() == "image/png"
-        assert parts[0].get_payload(decode=True) == Path(frappe.get_app_path("yishan_id_login", "public", "yishan-tech-mail.png")).read_bytes()
+        assert parts[0].get_payload(decode=True) == Path(frappe.get_app_path("yishan_id", "public", "yishan-tech-mail.png")).read_bytes()
         assert text.rstrip().endswith("https://geokeji.com/") and "移山科技官网" in text
         subject = str(mail["Subject"])
         assert subject.count("移山科技 数据中台(BizBase)") == 1

@@ -3,6 +3,7 @@
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import requests
 
@@ -29,16 +30,28 @@ def check():
         call('POST', '/api/method/login', data={'usr': 'Administrator', 'pwd': password})
         try:
             assert call('GET', '/api/method/frappe.auth.get_logged_user').json()['message'] == 'Administrator'
-            desk = call('GET', '/desk/geo_operations')
+            desk = call('GET', '/desk/bizbase_mgmt')
             assert 'text/html' in desk.headers.get('Content-Type', '')
-            workspace = call('GET', '/api/resource/Workspace/geo_operations').json()['data']
-            assert workspace['name'] == workspace['module'] == 'geo_operations'
+            for old, new in (
+                ('/file-share', '/desk/file-share'),
+                ('/desk/static-share', '/desk/file-share'),
+                ('/desk/yishan_id_login/yishan-id-binding', '/desk/yishan_id/yishan-id-binding'),
+            ):
+                redirect = session.get(BASE + old, timeout=20, allow_redirects=False)
+                dest = urlsplit(redirect.headers.get('Location', ''))
+                if redirect.status_code != 302 or dest.path != new or (dest.netloc and dest.netloc != urlsplit(BASE).netloc):
+                    raise RuntimeError(f'{old}: wrong canonical route')
+                call('GET', new)
+            call('GET', '/assets/file_share/icon.svg')
+            for board in ('bizbase_mgmt', 'sales_board', 'ops_board', 'customer_board'):
+                workspace = call('GET', f'/api/resource/Workspace/{board}').json()['data']
+                assert workspace['name'] == workspace['module'] == board
         finally:
             # The Desk boot payload sets the CSRF token for authenticated POSTs.
             m = re.search(r'frappe\.csrf_token\s*=\s*["\']([^"\']+)', desk.text) if 'desk' in locals() else None
             headers = {'X-Frappe-CSRF-Token': m[1]} if m else {}
             call('POST', '/api/method/logout', headers=headers)
-        print('HTTPS login page, CSS, Administrator session, Desk, GEO workspace and logout: OK')
+        print('HTTPS login page, CSS, Administrator session, Desk, canonical routes, four workspaces and logout: OK')
 
 
 if __name__ == '__main__':

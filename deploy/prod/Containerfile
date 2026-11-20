@@ -1,23 +1,36 @@
-# Official amd64 distribution, including the matching ERPNext environment and assets.
-ARG REG=docker.io
-FROM ${REG}/frappe/erpnext@sha256:fa1e012a931b12721c4c1407fc0d7876a5ab87d7b3d0757d07e57b2a7d5f5963
+# amd64 target of deploy/local-pg/Containerfile built on the pinned production ERPNext digest.
+ARG PLATFORM_IMAGE=bizbase/platform:pg-amd64
+ARG NATIVE_CRM_IMAGE=bizbase/erpnext-crm:16.55.0-16.0.4
+FROM --platform=$BUILDPLATFORM ${NATIVE_CRM_IMAGE} AS crm_assets
+WORKDIR /home/frappe/frappe-bench
+# Copy only CRM source, browser assets and message catalogs from the verified native build.
+RUN set -eu; test "$(git -C apps/crm rev-parse HEAD)" = 9ace234fceb3c5e7bd630b74f44ba1779e831abe; \
+    test -s apps/crm/crm/public/frontend/index.html; cmp apps/crm/crm/public/frontend/index.html apps/crm/crm/www/crm.html; \
+    mkdir -p /tmp/bizbase/apps/crm; \
+    tar -C apps/crm --exclude=__pycache__ --exclude=node_modules -cf /tmp/crm-source.tar crm pyproject.toml README.md LICENSE; \
+    tar -xf /tmp/crm-source.tar -C /tmp/bizbase/apps/crm; \
+    find assets/locale -name crm.mo -exec cp --parents '{}' /tmp/bizbase/ \;
+
+FROM frappe/erpnext@sha256:fa1e012a931b12721c4c1407fc0d7876a5ab87d7b3d0757d07e57b2a7d5f5963 AS crm
 USER frappe
 WORKDIR /home/frappe/frappe-bench
-COPY --chown=frappe:0 apps/geo_operations apps/geo_operations
-COPY --chown=frappe:0 apps/yishan_id_login apps/yishan_id_login
-COPY --chown=frappe:0 apps/static_share apps/static_share
-COPY deploy/local-crm/nginx.conf.template /templates/nginx/frappe.conf.template
+COPY --from=crm_assets --chown=frappe:0 /tmp/bizbase/ ./
+RUN uv pip install --python env/bin/python -e apps/crm \
+    && env/bin/pip check \
+    && ln -s /home/frappe/frappe-bench/apps/crm/crm/public assets/crm \
+    && printf '%s\n' frappe erpnext crm > sites/apps.txt
+
+FROM ${PLATFORM_IMAGE}
+USER frappe
+WORKDIR /home/frappe/frappe-bench
 COPY deploy/prod/localize_mail_subjects.py deploy/prod/localize_erp_mail.py deploy/prod/localize_erp_templates.py deploy/prod/check_mail_defaults.py /opt/bizbase-mail/
 RUN env/bin/python /opt/bizbase-mail/localize_mail_subjects.py \
     && env/bin/python /opt/bizbase-mail/localize_erp_mail.py --image \
     && env/bin/python /opt/bizbase-mail/localize_erp_templates.py
-RUN printf '%s\n' frappe erpnext geo_operations yishan_id_login static_share > sites/apps.txt \
-    && env/bin/pip install --no-cache-dir --disable-pip-version-check --no-deps -e apps/geo_operations -e apps/yishan_id_login -e apps/static_share \
+RUN env/bin/python /opt/bizbase/pg_compat.py --check \
     && env/bin/pip check \
-    && env/bin/python -c 'import erpnext, frappe, geo_operations, yishan_id_login, static_share; assert (frappe.__version__, erpnext.__version__) == ("16.56.0", "16.55.0")' \
-    && ln -s /home/frappe/frappe-bench/apps/geo_operations/geo_operations/public assets/geo_operations \
-    && ln -s /home/frappe/frappe-bench/apps/yishan_id_login/yishan_id_login/public assets/yishan_id_login \
-    && ln -s /home/frappe/frappe-bench/apps/static_share/static_share/public assets/static_share \
+    && env/bin/python -c 'import crm, erpnext, frappe, insights; assert (frappe.__version__, erpnext.__version__, crm.__version__, insights.__version__) == ("16.56.0", "16.55.0", "16.0.4", "3.50.1")' \
+    && test ! -d apps/hrms && test ! -d apps/geo_operations \
     && test -f assets/frappe/dist/js/desk.bundle.*.js \
     && test -f assets/erpnext/dist/js/erpnext.bundle.*.js \
-    && test -f assets/static_share/icon.svg
+    && test -f assets/file_share/icon.svg

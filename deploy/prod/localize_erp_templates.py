@@ -1,6 +1,6 @@
 """Localize fixed ERPNext 16.55.0 mail copy in an incremental image.
 
-Run `python3 localize_erp_templates.py [BENCH_PATH]` after copying yishan_id_login.
+Run `python3 localize_erp_templates.py [BENCH_PATH]` after copying yishan_id.
 No site connection is needed. Accept the pinned upstream, first patch or current patch.
 """
 
@@ -195,10 +195,10 @@ def image_changes(bench):
     changes = {}
     for name, sha in TEMPLATES.items():
         relative = f"templates/emails/{name}.html"
-        target = bench / "apps/yishan_id_login/yishan_id_login" / relative
+        target = bench / "apps/yishan_id/yishan_id" / relative
         if not target.is_file() or not target.read_text().strip():
             raise ValueError(f"Missing Chinese template: {target}")
-        include = '{% include "yishan_id_login/' + relative + '" %}\n'
+        include = '{% include "yishan_id/' + relative + '" %}\n'
         path = root / relative
         source = path.read_bytes().decode("utf-8")
         if source == include:

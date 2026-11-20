@@ -5,7 +5,8 @@
 #   deploy.sh release IMAGE [--migrate]   start the idle slot, smoke-test, switch traffic, hand over jobs
 #   deploy.sh rollback [--force]          switch traffic and jobs back to the previous slot
 #   deploy.sh retire                      remove the previous slot once rollback is no longer needed
-#   deploy.sh compose ARGS...             docker compose on the active slot (maintenance releases)
+#   deploy.sh maintenance ACTION ...      D-class coordinated outage; see OPERATIONS.md
+#   deploy.sh compose ARGS...             docker compose on the active slot outside D windows
 #
 # Slots share the site directory, database and Redis. Only one slot runs worker and
 # scheduler at a time. The legacy single-stack project counts as the first slot.
@@ -25,6 +26,9 @@ ARCH=${BIZBASE_ARCH:-linux/amd64}
 LEGACY=${BIZBASE_LEGACY_PROJECT:-bizbase-prod}
 read -r -a NGINX <<<"${BIZBASE_NGINX:-nginx}"
 STATE=$DIR/slots
+D=$STATE/maintenance
+# The process environment must not override slot-specific image/port settings in Compose.
+unset BIZBASE_IMAGE BIZBASE_PORT BIZBASE_PROXY_IP
 COMPOSE=(docker compose --project-directory "$DIR" -f "$DIR/compose.yaml")
 if [ -n "${BIZBASE_COMPOSE_EXTRA:-}" ]; then COMPOSE+=(-f "$BIZBASE_COMPOSE_EXTRA"); fi
 
@@ -61,13 +65,15 @@ target() {
 	echo "${t//%PROJECT%/$(project "$1")}"
 }
 upstream_line() { printf 'server %s;\n' "$(target "$1")"; }
-upstream_now() { grep -E '^[[:space:]]*server[[:space:]]' "$UPSTREAM" | head -1; }
+upstream_now() { grep -m1 -E '^[[:space:]]*server[[:space:]]' "$UPSTREAM"; }
 
 lock() {
 	mkdir -p "$STATE"
 	mkdir "$STATE/.lock" 2>/dev/null || die "another deploy is running (remove $STATE/.lock if it crashed)"
 	trap 'rmdir "$STATE/.lock"' EXIT
 }
+
+no_maintenance() { [ ! -e "$D" ] || die "D-class window in progress; use maintenance commands, not A/B rollback"; }
 
 check_upstream() {
 	[ -f "$UPSTREAM" ] || die "$UPSTREAM missing: complete the one-time Nginx step in OPERATIONS.md"
@@ -105,7 +111,7 @@ smoke() {
 	base=http://127.0.0.1:$(port "$1")
 	curl -fsS -o /dev/null --max-time 10 "$base/api/method/ping" || return 1
 	html=$(curl -fsS --max-time 20 "$base/login") || return 1
-	asset=$(printf '%s' "$html" | grep -oE '/assets/[^"?]+\.(css|js)' | head -1)
+	asset=$(printf '%s' "$html" | grep -oE '/assets/[^"?]+\.(css|js)' | sed -n '1p') || return 1
 	[ -n "$asset" ] || {
 		echo "no asset link on /login" >&2
 		return 1
@@ -128,28 +134,33 @@ image_file_sum() { docker run --rm --network none --entrypoint sha256sum "$1" "$
 
 cmd_status() {
 	local a p
+	if [ -d "$D" ]; then printf "D window: %s (rollback disabled)\n" "$(cat "$D/phase")"; fi
 	a=$(active)
 	p=$(previous)
 	echo "active:   $a (port $(port "$a"), $(project "$a"), $(slot_compose "$a"))"
 	echo "previous: ${p:-none}"
 	if [ -f "$UPSTREAM" ]; then echo "nginx:    $(upstream_now)"; fi
 	if [ -f "$STATE/migrated" ]; then echo "note:     the active slot ran migrate; rollback needs --force"; fi
-	docker ps --filter "label=com.docker.compose.project" --format '{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Image}}\t{{.Status}}' | grep "^$LEGACY" | sort
+	docker ps --filter "label=com.docker.compose.project" --format '{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Image}}\t{{.Status}}' | awk -v p="$LEGACY" '$1==p || $1==p "-blue" || $1==p "-green"' | sort
 }
 
 cmd_release() {
 	local image=${1:?usage: deploy.sh release IMAGE [--migrate]} migrate=${2:-}
 	[ -z "$migrate" ] || [ "$migrate" = --migrate ] || die "unknown option $migrate"
 	lock
-	local cur new old_image extra
+	no_maintenance
+	local cur new old_image expected candidate baseline
 	cur=$(active)
 	case $cur in legacy | green) new=blue ;; blue) new=green ;; esac
 	check_upstream "$cur"
 
 	[ "$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$image")" = "$ARCH" ] || die "$image is not $ARCH"
 	old_image=$(docker inspect -f '{{.Image}}' "$(containers "$cur" backend | head -1)")
-	extra=$(comm -13 <(sort "$SITES_DIR/apps.txt") <(docker run --rm --network none --entrypoint cat "$image" sites/apps.txt | sort) | tr '\n' ' ')
-	[ -z "$extra" ] || die "image adds apps (${extra% }); installing apps needs the maintenance procedure"
+	expected=$(LC_ALL=C sort "$SITES_DIR/apps.txt")
+	candidate=$(docker run --rm --network none --entrypoint cat "$image" sites/apps.txt | LC_ALL=C sort)
+	baseline=$(docker run --rm --network none --entrypoint cat "$old_image" sites/apps.txt | LC_ALL=C sort)
+	[ -n "$expected" ] && [ "$expected" = "$candidate" ] && [ "$expected" = "$baseline" ] ||
+		die "installed image app sets differ; use D-class maintenance (do not pre-edit apps.txt for A/B release)"
 	[ "$(image_file_sum "$old_image" assets/assets.json)" = "$(image_file_sum "$image" assets/assets.json)" ] ||
 		die "framework assets differ from the running image; use the maintenance procedure"
 
@@ -203,6 +214,7 @@ cmd_release() {
 
 cmd_rollback() {
 	lock
+	no_maintenance
 	local cur prev
 	cur=$(active)
 	prev=$(previous)
@@ -225,6 +237,7 @@ cmd_rollback() {
 
 cmd_retire() {
 	lock
+	no_maintenance
 	local prev
 	prev=$(previous)
 	[ -n "$prev" ] || {
@@ -235,6 +248,146 @@ cmd_retire() {
 	dc "$prev" down
 	rm -f "$STATE/previous"
 	log "removed $prev"
+}
+
+# D state survives shell exits/reboots. Never expose old code to a renamed schema.
+# Stop at the first error. No action here restores databases or rewinds Nginx to old code.
+phase() { printf '%s\n' "$1" >"$D/phase.next"; mv "$D/phase.next" "$D/phase"; }
+need_phase() { [[ " $* " == *" $(cat "$D/phase") "* ]] || die "wrong maintenance phase: $(cat "$D/phase")"; }
+quiescent() {
+	local ids
+	ids=$(docker ps -q --filter "label=com.docker.compose.project=$(project "$1")")
+	[ -z "$ids" ] || die "slot $1 still has live processes; no migration or cutover allowed"
+}
+maint_run() {
+	local side=$1 slot image
+	shift
+	slot=$(cat "$D/$side"); image=$(cat "$D/$side.image")
+	BIZBASE_IMAGE=$image dc "$slot" run --rm --no-deps -T backend "$@"
+}
+maint_db_check() {
+	maint_run new env/bin/python - "$SITE" <<'PYDB'
+import os, sys
+from pathlib import Path
+import frappe
+os.chdir("sites")
+frappe.init(site=sys.argv[1]); frappe.connect()
+try:
+    expected = set(Path("apps.txt").read_text().splitlines())
+    if frappe.db.db_type != "postgres" or set(frappe.get_installed_apps()) != expected:
+        raise RuntimeError("not PostgreSQL or installed apps do not match apps.txt")
+finally:
+    frappe.destroy()
+PYDB
+}
+cmd_maintenance() {
+	local action=${1:-} old old_id new img image_id gw checkpoint manifest actual s
+	[ -n "$action" ] || die 'expected begin|freeze|checkpoint|old|manifest|new|migrate|preview|publish|accept|isolate'
+	shift; lock
+	if [ "$action" = begin ]; then
+		no_maintenance
+		[ "$#" = 1 ] || die 'usage: maintenance begin IMAGE'
+		img=$1; old=$(active); case $old in legacy|green) new=blue ;; blue) new=green ;; *) die 'invalid active slot' ;; esac
+		check_upstream "$old"
+		[ -z "$(previous)" ] || die 'retire any prior rollback slot separately before maintenance'
+		for s in legacy blue green; do [ "$s" = "$old" ] || quiescent "$s"; done
+		[ "$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$img")" = "$ARCH" ] || die 'wrong candidate architecture'
+		image_id=$(docker image inspect -f '{{.Id}}' "$img")
+		old_id=$(docker inspect -f '{{.Image}}' "$(containers "$old" backend)")
+		[ -z "$(docker ps -aq --filter "label=com.docker.compose.project=$(project "$new")")" ] || die 'target not empty; inspect and retire only its stopped containers before begin'
+		# Save the legacy fallback before stopping its backend. Publish the marker atomically.
+		local draft; draft=$(mktemp -d "$STATE/.maintenance.XXXXXX")
+		printf '%s\n' "$old" >"$draft/old"; printf '%s\n' "$old_id" >"$draft/old.image"
+		printf '%s\n' "$new" >"$draft/new"; printf '%s\n' "$image_id" >"$draft/new.image"
+		printf '%s\n' prepared >"$draft/phase"; echo "$old" >"$STATE/active"; mv "$draft" "$D"
+		log "pinned $old and $new images; no traffic or jobs changed"; return
+	fi
+	[ -d "$D" ] || die 'no D-class window'
+	old=$(cat "$D/old"); new=$(cat "$D/new"); image_id=$(cat "$D/new.image")
+	case $action in
+	freeze)
+		need_phase prepared freezing
+		check_upstream "$old"; phase freezing
+		# Disable HTTP writes before draining. If interrupted, retry without the old backend.
+		if running "$old" backend; then dc "$old" exec -T backend bench --site "$SITE" set-maintenance-mode on; fi
+		dc "$old" stop -t 120 frontend websocket scheduler worker backend
+		quiescent "$old"; phase frozen ;;
+	checkpoint)
+		need_phase frozen
+		checkpoint=${1:?expected verified coordinated backup reference}
+		[[ "$checkpoint" =~ ^[a-zA-Z0-9._:-]{1,120}$ ]] || die 'expected a backup identifier, not credentials or a path'
+		quiescent "$old"
+		printf '%s\n' "$checkpoint" >"$D/checkpoint"
+		printf 'BIZBASE_IMAGE=%s\nBIZBASE_PORT=%s\n' "$image_id" "$(port "$new")" >"$STATE/$new.env"
+		dc "$new" create --no-build --pull never --no-recreate backend >/dev/null
+		gw=$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' "$(project "$new")_default")
+		printf 'BIZBASE_PROXY_IP=%s\n' "$gw" >>"$STATE/$new.env"; phase backed-up ;;
+	manifest)
+		need_phase backed-up; quiescent "$old"; quiescent "$new"
+		local tmp; tmp=$(mktemp "$SITES_DIR/.apps.XXXXXX")
+		cp -p "$SITES_DIR/apps.txt" "$tmp"
+		docker run --rm --network none --entrypoint cat "$image_id" sites/apps.txt >"$tmp"
+		[ -s "$tmp" ] && ! grep -qEv '^[a-z][a-z0-9_]*$' "$tmp" || die 'invalid candidate apps.txt'
+		mv "$tmp" "$SITES_DIR/apps.txt"; phase candidate ;;
+	old|new)
+		need_phase backed-up candidate; quiescent "$old"; quiescent "$new"
+		[ "$#" -gt 0 ] || die 'expected migration/admin command'
+		if [ "$action" = old ]; then need_phase backed-up; else need_phase candidate; fi
+		maint_run "$action" "$@" ;;
+	migrate)
+		need_phase candidate; quiescent "$old"; quiescent "$new"
+		manifest=$(docker run --rm --network none --entrypoint cat "$image_id" sites/apps.txt | LC_ALL=C sort)
+		actual=$(LC_ALL=C sort "$SITES_DIR/apps.txt")
+		[ -n "$manifest" ] && [ "$manifest" = "$actual" ] || die 'candidate manifest and shared apps.txt differ'
+		maint_db_check
+		maint_run new bench --site "$SITE" migrate
+		maint_run new bench --site "$SITE" clear-cache
+		maint_db_check; phase migrated ;;
+	preview)
+		need_phase migrated preview; quiescent "$old"; check_upstream "$old"
+		# Old web remains stopped: disabling maintenance opens only the candidate loopback port.
+		maint_run new bench --site "$SITE" set-maintenance-mode off
+		dc "$new" up -d --no-build --pull never --wait --wait-timeout 300 backend websocket frontend
+		smoke "$new"; phase preview; log "validate port $(port "$new") before authorizing publish" ;;
+	publish)
+		need_phase preview publishing; quiescent "$old"
+		if [ "$(cat "$D/phase")" = publishing ]; then
+			dc "$new" up -d --no-build --pull never --wait --wait-timeout 300 backend websocket frontend
+		fi
+		smoke "$new" || die 'candidate smoke failed'
+		phase publishing
+		if [ "$(upstream_now)" = "$(upstream_line "$old")" ]; then
+			check_upstream "$old"; switch_upstream "$new"
+		else
+			# A failed reload may have updated the file without changing the live workers.
+			check_upstream "$new"; "${NGINX[@]}" -s reload
+		fi
+		if ! edge_ok || ! dc "$new" up -d --no-build --pull never worker scheduler; then
+			dc "$new" stop -t 120 frontend scheduler worker
+			die 'public check or job start failed; candidate ingress/jobs stopped; never route to pre-migration code'
+		fi
+		echo "$new" >"$STATE/active.next"; mv "$STATE/active.next" "$STATE/active"
+		phase published
+		log "traffic and jobs live on $new; verify business routes, then maintenance accept" ;;
+	accept)
+		need_phase published; quiescent "$old"; check_upstream "$new"
+		edge_ok && running "$new" worker && running "$new" scheduler || die 'new slot is not healthy'
+		rm -f "$STATE/previous" "$STATE/migrated"
+		mv "$D" "$(mktemp -d "$STATE/completed-D.XXXXXX")/record"
+		log "D cutover accepted on $new; $old is stopped and is NOT a rollback target" ;;
+	isolate)
+		# Operator-authorized recovery barrier; no code or data rollback here.
+		phase isolating
+		for s in "$old" "$new"; do
+			if [ -n "$(docker ps -q --filter "label=com.docker.compose.project=$(project "$s")")" ]; then
+				dc "$s" stop -t 120 frontend websocket scheduler worker backend
+			fi
+			quiescent "$s"
+		done
+		phase isolated
+		log 'both slots stopped. Restore the coordinated checkpoint before starting old code.' ;;
+	*) die 'unknown maintenance action' ;;
+	esac
 }
 
 case ${1:-} in
@@ -248,7 +401,9 @@ rollback)
 	cmd_rollback "$@"
 	;;
 retire) cmd_retire ;;
+maintenance) shift; cmd_maintenance "$@" ;;
 compose)
+	no_maintenance
 	shift
 	dc "$(active)" "$@"
 	;;

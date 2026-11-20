@@ -17,7 +17,8 @@ from frappe.utils.scheduler import enable_scheduler
 from frappe.utils.synchronization import filelock
 
 SITE = "bizbase.geokeji.com"
-APPS = ("frappe", "erpnext", "geo_operations", "yishan_id_login", "static_share")
+BOARDS = ("bizbase_mgmt", "sales_board", "ops_board", "customer_board")
+APPS = ("frappe", "erpnext", "crm", "insights", "yishan_id", "file_share", *BOARDS)
 SEED_HASH = "b35b740c07c0450f6d93ad4ec07d7e68057ea81caa6efbbcd7cd2bb28c2bbb35"
 
 
@@ -88,7 +89,8 @@ def bootstrap():
     frappe.connect()
     check_password("Administrator", password)
     require(set(frappe.get_installed_apps()) == set(APPS), "Installed apps mismatch")
-    require(frappe.db.exists("Workspace", "geo_operations"), "Missing GEO workspace")
+    for board in BOARDS:
+        require(frappe.db.exists("Workspace", board), f"Missing workspace: {board}")
     n = frappe.db.sql("select count(*) from pg_tables where schemaname=current_schema()")[0][0]
     print(f"Site initialized and migrated: {n} tables, {len(APPS)} apps, Administrator verified.")
 
