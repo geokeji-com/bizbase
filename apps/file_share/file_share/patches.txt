@@ -2,3 +2,4 @@
 
 [post_model_sync]
 file_share.migrate_file_share
+file_share.migrate_publication

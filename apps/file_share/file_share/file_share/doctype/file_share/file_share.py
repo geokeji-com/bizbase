@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from file_share import core
+from file_share import core, publication
 from file_share.permissions import is_employee, is_manager
 
 ACCESS_FIELDS = ("access_level", "status")
@@ -48,18 +48,22 @@ class FileShare(Document):
 			# Managers without an Employee record can take down existing material only.
 			if not (before and is_manager(user) and self.status == "Disabled" and
 					all(self.get(k) == before.get(k) for k in ("upload", "title", "description", "current_version")) and
+					len(self.entries) == len(before.entries) and
+					all(publication.same_entry(row, old) and row.name == old.name for row, old in zip(self.entries, before.entries)) and
 					not self._access_changed(before, include_status=False)):
 				frappe.throw(_("Only active employees with Desk access can publish"), frappe.PermissionError)
 		self._validate_access()
 		if not before or before.upload != self.upload:
-			self._ingest_upload()
-		elif not any(v.version == self.current_version for v in self.versions):
+			version = self._ingest_upload()
+			if self.publish_upload:
+				self.current_version = version
+		self.publish_upload = 0  # one-shot action, never implicitly publish a later upload
+		if self.current_version and not any(v.version == self.current_version for v in self.versions):
 			frappe.throw(_("Version {0} does not exist").format(self.current_version))
-		self.share_url = f"/file-share/{self.name}"
-		if not before or self._access_changed(before) or before.current_version != self.current_version:
-			self.access_salt = secrets.token_hex(16)
-		else:
-			self.access_salt = before.access_salt
+		self.share_url = f"/file-share/s/{self.name}"
+		changed = self._access_changed(before)
+		self.access_salt = publication.epoch() if changed else before.access_salt
+		publication.validate_entries(self, before, changed)
 
 	def _validate_versions(self, before):
 		# Read-only fields in Desk are still writable in REST payloads. Compare with locked rows,
@@ -145,7 +149,7 @@ class FileShare(Document):
 				"uploaded_on": frappe.utils.now_datetime(),
 			},
 		)
-		self.current_version = version
+		return version
 
 	def entry_for_current(self) -> str | None:
 		for v in self.versions:

@@ -8,6 +8,7 @@ import os
 import re
 import secrets
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from urllib.parse import quote
 
 import frappe
@@ -28,24 +29,29 @@ CAP_COOKIE = "ss_asset"
 CAP_PATTERN = re.compile(r"[A-Za-z0-9_-]{32}\Z")
 
 
+SHARE_ROUTE = re.compile(r"(?P<base>(?:file-share/s|file-share|s)/(?P<id>[A-Za-z0-9]{10}))(?:/(?P<rest>.*))?\Z")
+
+
 class ShareRenderer(BaseRenderer):
 	def can_render(self):
-		return self.path in ("file-share", "s") or self.path.startswith(("file-share/", "s/"))
+		return self.path == "file-share" or bool(SHARE_ROUTE.fullmatch(self.path.strip("/")))
 
 	def render(self):
-		parts = frappe.request.path.strip("/").split("/")  # Website resolver strips .html
-		if parts == ["file-share"]:
+		path = frappe.request.path.strip("/")  # Website resolver may strip .html; keep raw asset paths.
+		if path == "file-share":
 			return redirect("/desk/file-share")
-		if len(parts) < 2 or parts[0] not in ("file-share", "s"):
+		route = SHARE_ROUTE.fullmatch(path)
+		if not route:
 			return message(404, "链接不存在", "请检查链接是否完整。")
-		share = load_share(parts[1])
+		share = load_share(route["id"])
 		if not share:
 			return message(404, "链接不存在或已停用", "请联系分享人确认链接。")
-		base = f"/{parts[0]}/{share.name}"
-		if len(parts) >= 5 and parts[2] == "c":
-			return serve_content(share, base, parts[3], parts[4], "/".join(parts[5:]))
-		if len(parts) == 2:
+		base = "/" + route["base"]
+		if not route["rest"]:
 			return serve_wrapper(share, base)
+		parts = route["rest"].split("/", 3)
+		if len(parts) >= 3 and parts[0] == "c":
+			return serve_content(share, base, parts[1], parts[2], parts[3] if len(parts) == 4 else "")
 		return message(404, "链接不存在", "请检查链接是否完整。")
 
 
@@ -55,8 +61,22 @@ class ShareRenderer(BaseRenderer):
 def load_share(name: str):
 	if not re.fullmatch(r"[A-Za-z0-9]{10}", name) or not frappe.db.exists("File Share", name):
 		return None
-	share = frappe.get_doc("File Share", name)
-	return share if share.status == "Active" else None
+	from file_share.publication import resolve_entry
+
+	doc = frappe.get_doc("File Share", name)
+	if doc.status != "Active":
+		return None
+	# Use the same effective policy for the shell, password POST, every asset and every alias.
+	entry = resolve_entry(doc, frappe.request.host, allow_unpublished=True)
+	if not entry:
+		return None
+	return SimpleNamespace(
+		name=doc.name, title=doc.title, owner=doc.owner, versions=doc.versions,
+		domain=entry.domain, current_version=entry.current_version, access_level=entry.access_level,
+		allowed_users=entry.allowed_users, allowed_roles=entry.allowed_roles, password_doc=entry.password_doc,
+		access_salt=entry.access_salt, password_salt=entry.password_salt,
+		legacy_salt=doc.access_salt if entry.legacy_credentials else None,
+	)
 
 
 def signing_key() -> bytes:
@@ -89,7 +109,8 @@ def viewer_decision(share, user: str) -> str:
 		if is_author(share, user):
 			return "view"
 		token = frappe.request.cookies.get(password_cookie(share.name), "")
-		return "view" if core.verify(signing_key(), token, "pwd", share.name, share.access_salt) else "password"
+		salts = (share.password_salt, share.legacy_salt)
+		return "view" if any(s and core.verify(signing_key(), token, "pwd", share.name, s) for s in salts) else "password"
 	if user == "Guest":
 		return "login"
 	return "view" if staff_can_view(share, user) else "denied"
@@ -138,12 +159,15 @@ def live_session_data(user, sid):
 
 def asset_allowed(share, version, token):
 	if share.access_level == "Public" and version == share.current_version:
-		return core.verify(signing_key(), token, "public", share.name, f"{share.access_salt}:{version}")
+		return any(s and core.verify(signing_key(), token, "public", share.name, f"{s}:{version}")
+			for s in (share.access_salt, share.legacy_salt))
 	cookie = frappe.request.cookies.get(CAP_COOKIE, "")
 	if not CAP_PATTERN.fullmatch(token) or not CAP_PATTERN.fullmatch(cookie):
 		return False
 	grant = frappe.cache.get_value(grant_key(token))
-	if not grant or (grant["share"], grant["version"], grant["salt"]) != (share.name, version, share.access_salt):
+	if not grant or (grant["share"], grant["version"]) != (share.name, version):
+		return False
+	if not grant["salt"] or grant["salt"] not in (share.access_salt, share.legacy_salt):
 		return False
 	if not hmac.compare_digest(grant["digest"], hashlib.sha256(cookie.encode()).hexdigest()):
 		return False
@@ -164,7 +188,9 @@ def log(share, result: str, version: int | None = None):
 				"doctype": "File Share Access Log",
 				"share": share.name,
 				"share_owner": share.owner,
-				"version": version or share.current_version,
+				"title_snapshot": share.title,
+				"access_domain": share.domain,
+				"version": version if version is not None else share.current_version,
 				"result": result,
 				"viewer": frappe.session.user,
 				"ip_address": frappe.local.request_ip,
@@ -184,8 +210,8 @@ def password_cookie(name: str) -> str:
 
 def usage_frame(feature):
 	# Count the outer page only. Uploaded resources may contain private, signed URLs.
-	if frappe.local.site != "bizbase.geokeji.com" or not re.fullmatch(
-		r"/(?:file-share|s)/[A-Za-z0-9]{10}/?", frappe.request.path
+	if frappe.local.site != "bizbase.geokeji.com" or frappe.request.host != "bizbase.geokeji.com" or not re.fullmatch(
+		r"/(?:file-share/s|file-share|s)/[A-Za-z0-9]{10}/?", frappe.request.path
 	):
 		return ""
 	return (f'<iframe src="/_usage/file-share/{feature}" title="访问统计" aria-hidden="true" '
@@ -199,6 +225,8 @@ def serve_wrapper(share, base):
 
 	requested = cint(request.args.get("v"))
 	url = f"{base}?v={requested}" if requested > 0 else base
+	if not share.current_version and (requested <= 0 or not is_author(share, user)):
+		return message(404, "链接不存在或已停用", "请联系分享人确认链接。")
 
 	if share.access_level == "Password" and request.method == "POST":
 		return check_password(share, base, url)
@@ -274,12 +302,11 @@ def serve_content(share, base, version_str: str, token: str, rel: str):
 	with open(target, "rb") as f:
 		data = f.read()
 	resp = Response(data, content_type=mimetype)
-	# 'self' on a sandboxed document can be opaque. Allow resources only under this
-	# exact absolute content prefix, never the entire Frappe origin or other shares.
+	# The sandbox has an opaque origin. Use the absolute version prefix for bundled assets.
 	scheme = "https" if frappe.request.is_secure or frappe.get_request_header("X-Forwarded-Proto") == "https" else "http"
 	assets = f"{scheme}://{frappe.request.host}{base}/c/{version}/{token}/"
 	resp.headers["Content-Security-Policy"] = (
-		f"sandbox {SANDBOX}; default-src 'none'; script-src 'unsafe-inline' {assets}; "
+		f"sandbox {SANDBOX}; default-src 'none'; script-src 'unsafe-inline' {assets} https:; "
 		f"style-src 'unsafe-inline' {assets}; img-src data: {assets}; font-src data: {assets}; "
 		f"media-src {assets}; connect-src 'none'; object-src 'none'; frame-src 'none'; "
 		"base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
@@ -297,15 +324,13 @@ def serve_content(share, base, version_str: str, token: str, rel: str):
 
 
 def check_password(share, base, url):
-	key = frappe.cache.make_key(f"static_share:pwd:{share.name}:{frappe.local.request_ip}")
+	key = frappe.cache.make_key(f"static_share:pwd:{share.name}:{share.domain}:{frappe.local.request_ip}")
 	failures = cint(frappe.cache.get(key))
 	if failures >= PASSWORD_MAX_FAILURES:
 		log(share, "Rate Limited")
 		return password_page(share, url, "尝试次数过多，请 15 分钟后再试。", 429)
 
-	from frappe.utils.password import get_decrypted_password
-
-	expected = get_decrypted_password("File Share", share.name, "password", raise_exception=False) or ""
+	expected = share.password_doc.get_password("password", raise_exception=False) or ""
 	given = frappe.request.form.get("password", "")
 	if not expected or not hmac.compare_digest(given.encode(), expected.encode()):
 		n = frappe.cache.incr(key)
@@ -315,7 +340,7 @@ def check_password(share, base, url):
 		return password_page(share, url, "密码不正确。", 401)
 
 	frappe.cache.delete(key)
-	token = core.sign(signing_key(), "pwd", share.name, share.access_salt, PASSWORD_TTL)
+	token = core.sign(signing_key(), "pwd", share.name, share.password_salt, PASSWORD_TTL)
 	resp = redirect(url, 303)
 	resp.set_cookie(
 		password_cookie(share.name),

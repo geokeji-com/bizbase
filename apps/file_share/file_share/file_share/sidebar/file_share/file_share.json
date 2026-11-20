@@ -1,0 +1,18 @@
+{
+ "app": "file_share",
+ "creation": "2026-11-20 00:00:00.000000",
+ "doctype": "Sidebar",
+ "header_icon": "files",
+ "items": [
+  {"type": "Link", "label": "文件分享", "link_type": "DocType", "link_to": "File Share", "icon": "files"},
+  {"type": "Link", "label": "访问记录", "link_type": "DocType", "link_to": "File Share Access Log", "icon": "history"},
+  {"type": "Link", "label": "分享域名", "link_type": "DocType", "link_to": "File Share Domain", "icon": "globe"}
+ ],
+ "modified": "2026-11-20 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "File Share",
+ "name": "File Share",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "File Share"
+}

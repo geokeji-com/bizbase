@@ -4,6 +4,8 @@ app_publisher = "geokeji-com"
 app_description = "员工上传 HTML 等静态内容，按内部、指定人员、密码或公开范围分享"
 app_license = "MIT"
 
+app_include_js = ["/assets/file_share/desk-routes.js"]
+
 add_to_apps_screen = [
 	{
 		"name": app_name,

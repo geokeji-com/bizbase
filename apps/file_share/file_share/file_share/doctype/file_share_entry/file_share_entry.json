@@ -1,0 +1,123 @@
+{
+ "doctype": "DocType",
+ "module": "File Share",
+ "name": "File Share Entry",
+ "creation": "2026-11-20 10:00:00",
+ "modified": "2026-11-20 10:00:00",
+ "engine": "InnoDB",
+ "fields": [
+  {
+   "fieldname": "domain",
+   "fieldtype": "Data",
+   "label": "分享域名",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 3,
+   "search_index": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "开启",
+   "default": "1",
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "access_mode",
+   "fieldtype": "Select",
+   "label": "入口查看权限",
+   "options": "Inherit\nInternal\nSpecified\nPassword\nPublic",
+   "default": "Inherit",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "入口独立密码",
+   "depends_on": "eval:doc.access_mode=='Password'",
+   "description": "至少 6 位，不与其他入口共享。"
+  },
+  {
+   "fieldname": "user_list",
+   "fieldtype": "Small Text",
+   "label": "指定用户",
+   "depends_on": "eval:doc.access_mode=='Specified'",
+   "description": "每行填写一个用户账号。"
+  },
+  {
+   "fieldname": "role_list",
+   "fieldtype": "Small Text",
+   "label": "指定角色",
+   "depends_on": "eval:doc.access_mode=='Specified'",
+   "description": "每行填写一个角色名称。只允许在职员工访问。"
+  },
+  {
+   "fieldname": "version_mode",
+   "fieldtype": "Select",
+   "label": "交付版本策略",
+   "options": "Follow\nPinned",
+   "default": "Follow",
+   "reqd": 1,
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "pinned_version",
+   "fieldtype": "Int",
+   "label": "固定版本号",
+   "depends_on": "eval:doc.version_mode=='Pinned'",
+   "in_list_view": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "rule_epoch",
+   "fieldtype": "Data",
+   "label": "Rule Epoch",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "version_epoch",
+   "fieldtype": "Data",
+   "label": "Version Epoch",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "legacy_domain_epoch",
+   "fieldtype": "Data",
+   "label": "Legacy Domain Epoch",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  }
+ ],
+ "field_order": [
+  "domain",
+  "enabled",
+  "access_mode",
+  "password",
+  "user_list",
+  "role_list",
+  "version_mode",
+  "pinned_version",
+  "rule_epoch",
+  "version_epoch",
+  "legacy_domain_epoch"
+ ],
+ "permissions": [],
+ "istable": 1,
+ "editable_grid": 1
+}

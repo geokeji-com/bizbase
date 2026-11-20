@@ -11,7 +11,15 @@ Allowed Roles,允许的角色
 File Share User,文件分享用户
 File Share Role,文件分享角色
 File Share Version,文件分享版本
-File Share Access Log,文件分享访问记录
+File Share Domain,分享域名
+File Share Entry,发布入口
+Pending,待接入
+Enabled,可用
+Disabled,已停用
+Inherit,继承默认权限
+Pinned,固定版本
+Follow,跟随当前发布版
+File Share Access Log,访问记录
 Share not found,分享不存在
 This share has been disabled,此分享已停用
 You don't have permission to access this share,您无权访问此分享

@@ -12,6 +12,7 @@
   "description",
   "section_content",
   "upload",
+  "publish_upload",
   "current_version",
   "versions",
   "section_access",
@@ -20,7 +21,10 @@
   "column_break_access",
   "allowed_users",
   "allowed_roles",
-  "access_salt"
+  "access_salt",
+  "publication_section",
+  "entries",
+  "entry_links"
  ],
  "fields": [
   {
@@ -44,7 +48,8 @@
    "fieldname": "share_url",
    "fieldtype": "Data",
    "label": "Share Link",
-   "read_only": 1
+   "read_only": 1,
+   "hidden": 1
   },
   {
    "fieldname": "column_break_main",
@@ -61,18 +66,27 @@
    "label": "Content"
   },
   {
-   "description": "上传单个 HTML，或包含 index.html 的 ZIP（图片、CSS、JS 放在同一个压缩包里）。重新上传会生成新版本，链接不变。",
+   "description": "上传生成不可变的新版本。只存草稿不会改变已对外交付的版本。",
    "fieldname": "upload",
    "fieldtype": "Attach",
    "label": "Upload",
    "reqd": 1
   },
   {
-   "description": "查看者看到的版本。改成旧版本号即可回退。",
+   "fieldname": "publish_upload",
+   "fieldtype": "Check",
+   "label": "上传并发布",
+   "default": "0",
+   "no_copy": 1,
+   "description": "勾选后，新上传的版本将成为当前发布版。"
+  },
+  {
+   "description": "0 表示尚未发布。切换当前发布版会影响所有跟随的入口。",
    "fieldname": "current_version",
    "fieldtype": "Int",
-   "label": "Current Version",
-   "non_negative": 1
+   "label": "当前发布版",
+   "non_negative": 1,
+   "default": "0"
   },
   {
    "fieldname": "versions",
@@ -133,10 +147,27 @@
    "print_hide": 1,
    "read_only": 1,
    "report_hide": 1
+  },
+  {
+   "fieldname": "publication_section",
+   "fieldtype": "Section Break",
+   "label": "发布入口"
+  },
+  {
+   "fieldname": "entries",
+   "fieldtype": "Table",
+   "label": "发布域名",
+   "options": "File Share Entry",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "entry_links",
+   "fieldtype": "HTML",
+   "label": "各域名分享链接"
   }
  ],
  "links": [],
- "modified": "2026-11-19 14:00:00.000000",
+ "modified": "2026-11-20 10:00:00",
  "modified_by": "Administrator",
  "module": "File Share",
  "name": "File Share",

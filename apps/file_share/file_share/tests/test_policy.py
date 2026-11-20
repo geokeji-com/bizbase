@@ -12,7 +12,8 @@ from file_share.file_share.doctype.file_share.file_share import FileShare
 class SharePolicyTest(unittest.TestCase):
 	def setUp(self):
 		self.share = SimpleNamespace(name="abcDEF0123", owner="author", current_version=1, access_level="Specified",
-			access_salt="epoch", allowed_users=[SimpleNamespace(user="invited")], allowed_roles=[SimpleNamespace(role="Sales User")])
+			access_salt="epoch", password_salt="pwd-epoch", legacy_salt=None, domain="company.example",
+			password_doc=Mock(), allowed_users=[SimpleNamespace(user="invited")], allowed_roles=[SimpleNamespace(role="Sales User")])
 		self.frappe = self.enter_patch(serve, "frappe")
 		self.frappe.get_roles.side_effect = lambda user: {"manager": ["System Manager"], "seller": ["Sales User"]}.get(user, [])
 		self.employee = self.enter_patch(serve, "is_employee")
@@ -38,6 +39,7 @@ class SharePolicyTest(unittest.TestCase):
 			old_key = hmac.new(b"site-key", b"static_share/v1", hashlib.sha256).digest()
 			token = core.sign(old_key, "pwd", self.share.name, self.share.access_salt, ttl=60)
 			self.share.access_level = "Password"
+			self.share.legacy_salt = self.share.access_salt
 			self.frappe.request.cookies = {serve.password_cookie(self.share.name): token}
 			self.assertEqual(serve.viewer_decision(self.share, "Guest"), "view")
 			self.assertEqual(serve.grant_key("t"), "static_share:grant:t")
@@ -84,7 +86,7 @@ class SharePolicyTest(unittest.TestCase):
 
 		self.share.title = "Report"
 		self.share.versions = [SimpleNamespace(version=1, entry="index.html"), SimpleNamespace(version=2, entry="old.html")]
-		for prefix in ("/s", "/file-share"):
+		for prefix in ("/file-share/s", "/s", "/file-share"):
 			base = f"{prefix}/{self.share.name}"
 			self.frappe.request = Request(EnvironBuilder(path=base, query_string="v=2").get_environ())
 			self.frappe.session.user = "Guest"
@@ -106,12 +108,11 @@ class SharePolicyTest(unittest.TestCase):
 		self.share.access_level = "Password"
 		self.frappe.session.user = "Guest"
 		self.frappe.cache.get.return_value = 0
-		for prefix in ("/s", "/file-share"):
+		for prefix in ("/file-share/s", "/s", "/file-share"):
 			base = f"{prefix}/{self.share.name}"
 			url = base + "?v=2"
-			with patch.object(serve, "signing_key", return_value=b"key"), patch(
-				"frappe.utils.password.get_decrypted_password", return_value="secret"
-			):
+			self.share.password_doc.get_password.return_value = "secret"
+			with patch.object(serve, "signing_key", return_value=b"key"):
 				self.frappe.request = Request(EnvironBuilder(path=base, query_string="v=2").get_environ())
 				gate = serve.serve_wrapper(self.share, base)
 				self.assertIn(f'action="{url}"', gate.get_data(as_text=True))
