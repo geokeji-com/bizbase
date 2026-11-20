@@ -21,4 +21,14 @@
 
    安装清单为 frappe、ERPNext、CRM、移山 ID、文件分享、管理/销售/运营/客户四个看板与 Insights；没有 HRMS 或 GEO 运营。管理员账号 `Administrator`，密码仅在本机密码文件中查看。业务数据库只在 Compose 网络可达。六个自研应用以源码目录绑定给 bench，Build 标准定义可回写仓库。变更 Python 依赖或静态资源须重建镜像。
 
-4. 新站首次进入 Desk 会打开设置向导。此开发站使用虚构公司「BizBase 本地测试公司」、人民币、上海时区和标准科目表。新建空卷时通过向导完成本地设置后即可进入两行应用屏。备用旧站的容器与卷仍然保留。需要恢复旧站时先停止本项目，再启动旧 `bizbase` 项目的既有容器。
+### 文件分享的本地域名验收
+
+已有分享的开发站升级前，先核实原报告实际使用的外部地址；如果是默认回环地址，在该站设置 `file_share_primary_origin` 为 `http://127.0.0.1:8080` 再 migrate。不要用生产或新渠道域名代替旧地址。无需碰现有开发站的真实数据库验收可在仓库根运行 `rtk proxy bash deploy/local-pg/share-qa/run.sh`；脚本使用随机项目名、无外部端口的一次性 PG 站点，验证后回收。
+
+无需公网 DNS。准备只在开发机使用的三个名称（例如 `company.localhost`、`channel-a.localhost` 和 `channel-b.localhost`）。名单文件只写一行 `server_name company.localhost channel-a.localhost channel-b.localhost;`。使用含新版内层代理模板的镜像；在本机 Compose override 中按[生产文档的 configs 示例](../prod/OPERATIONS.md#逐个接入文件分享域名多域名版发布后)，把名单只读挂到 **frontend** 的 `/etc/nginx/bizbase-share-domains/allowed.conf`，然后在获准的预览环境中一起加载基础和 override 配置。源码挂载不包含已烘入镜像的 Nginx 模板。未知 Host 由默认虚拟主机返回 404；`localhost` 和 `127.0.0.1` 保留用于本地 Desk 和探活，不代表任一报告自动允许这些域名。
+
+可用 `rtk proxy curl --resolve company.localhost:8080:127.0.0.1 http://company.localhost:8080/file-share/s/<测试ID>` 分别验证三个入口（先将命令中的 `<测试ID>` 换成实际 ID）。只有在 App 中启用且报告已开放的域名才能看到内容。浏览器验收密码、沙箱 Cookie 或员工登录时使用受信任的 HTTPS 或支持相应 Cookie 策略的 loopback 环境；`curl` 打开外壳成功不等于完成浏览器验收。
+
+### 浏览器首次设置
+
+新站首次进入 Desk 会打开设置向导。此开发站使用虚构公司「BizBase 本地测试公司」、人民币、上海时区和标准科目表。新建空卷时通过向导完成本地设置后即可进入两行应用屏。备用旧站的容器与卷仍然保留。需要恢复旧站时先停止本项目，再启动旧 `bizbase` 项目的既有容器。

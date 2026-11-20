@@ -1,0 +1,30 @@
+# Disposable PostgreSQL acceptance site. No host ports, deployment volumes or credentials.
+services:
+  db:
+    image: postgres:16
+    pull_policy: never
+    environment:
+      POSTGRES_PASSWORD: ${QA_DB_PASSWORD:?use a generated temporary password}
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:6.2-alpine
+    pull_policy: never
+  check:
+    image: ${BIZBASE_QA_IMAGE:-bizbase/local:pg-routes}
+    pull_policy: never
+    entrypoint: [bash, /qa/install.sh]
+    environment:
+      QA_DB_PASSWORD: ${QA_DB_PASSWORD}
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - ../../../apps/file_share:/home/frappe/frappe-bench/apps/file_share:ro
+      - .:/qa:ro
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
+networks:
+  default: {internal: true}

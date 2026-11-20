@@ -12,10 +12,25 @@ map $http_x_forwarded_proto $proxy_x_forwarded_proto {
 	https https;
 }
 
+# Pass the server-selected hostname, never a client-supplied forwarded authority.
+# Keep an explicit port for local previews and sandbox CSP source URLs.
+map $http_host $bizbase_request_port {
+	default "";
+	~:(?<bizbase_port>[0-9]+)$ :$bizbase_port;
+}
+
+server {
+	listen ${NGINX_LISTEN_PORT} default_server;
+	server_name _;
+	return 404;
+}
+
 server {
 	listen ${NGINX_LISTEN_PORT};
-	server_name ${FRAPPE_SITE_NAME_HEADER};
-  absolute_redirect off;
+	server_name ${FRAPPE_SITE_NAME_HEADER} localhost 127.0.0.1;
+	# Optional root-managed snippets contain exact server_name directives only.
+	include /etc/nginx/bizbase-share-domains/*.conf;
+	absolute_redirect off;
 	root /home/frappe/frappe-bench/sites;
 
 	proxy_buffer_size 128k;
@@ -49,7 +64,7 @@ server {
 		rewrite ^/desk/(?:static_share/|static-share/)?static-share-(.*)$ /desk/file-share-$1 redirect;
 	}
 	location ~ ^/desk/yishan[_-]id[_-]login/yishan-id-binding(?:/|$) {
-		rewrite ^/desk/yishan[_-]id[_-]login/(.*)$ /desk/yishan_id/$1 redirect;
+		rewrite ^/desk/yishan[_-]id[_-]login/(.*)$ /desk/yishan-id/$1 redirect;
 	}
 
 	location /assets {
@@ -70,7 +85,9 @@ server {
 		proxy_set_header X-Frappe-Site-Name ${FRAPPE_SITE_NAME_HEADER};
 		# Preserve the browser origin for Frappe v16 same-origin validation.
 		proxy_set_header Origin $http_origin;
-		proxy_set_header Host $host;
+		proxy_set_header Host $host$bizbase_request_port;
+		proxy_set_header X-Forwarded-Host "";
+		proxy_set_header Forwarded "";
 
 		proxy_pass http://socketio-server;
 	}
@@ -93,13 +110,15 @@ server {
 		proxy_set_header X-Forwarded-For $remote_addr;
 		proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
 		proxy_set_header X-Frappe-Site-Name ${FRAPPE_SITE_NAME_HEADER};
-		proxy_set_header Host $http_host;
+		proxy_set_header Host $host$bizbase_request_port;
+		proxy_set_header X-Forwarded-Host "";
+		proxy_set_header Forwarded "";
 		proxy_read_timeout ${PROXY_READ_TIMEOUT};
 		proxy_redirect off;
 		proxy_pass http://backend-server;
 
 		# A sandbox subresource may arrive without a Desk session cookie.
-		location ~ ^/(?:file-share|s)/[^/]+/c/ {
+		location ~ ^/(?:file-share/s|file-share|s)/[^/]+/c/ {
 			proxy_hide_header Referrer-Policy;
 			proxy_hide_header Set-Cookie;
 			proxy_pass http://backend-server;
@@ -125,7 +144,9 @@ server {
 		proxy_set_header X-Forwarded-For $remote_addr;
 		proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
 		proxy_set_header X-Frappe-Site-Name ${FRAPPE_SITE_NAME_HEADER};
-		proxy_set_header Host $host;
+		proxy_set_header Host $host$bizbase_request_port;
+		proxy_set_header X-Forwarded-Host "";
+		proxy_set_header Forwarded "";
 		proxy_set_header X-Use-X-Accel-Redirect True;
 		proxy_read_timeout ${PROXY_READ_TIMEOUT};
 		proxy_redirect off;

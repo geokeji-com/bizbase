@@ -60,7 +60,31 @@ D 类仍使用蓝绿两个槽位和同一个 Nginx upstream；不同点是共享
 3. 在新 backend 中仅对缺失应用依次运行 `bench --site bizbase.geokeji.com install-app erpnext` 和 `bench --site bizbase.geokeji.com install-app static_share`。随后执行 `bench --site bizbase.geokeji.com migrate`、`bench --site bizbase.geokeji.com clear-cache`。保留现有用户、绑定和站点配置。
 4. 用同一镜像恢复全部五个服务，关闭维护模式。从 HTTPS 入口验证登录、ERPNext 资源、Employee 和分享权限。若迁移失败，在维护模式下恢复同一检查点的数据库、站点文件、应用清单、Compose 配置与旧镜像。
 
-管理入口为 `/file-share`（文件分享）和 `/yishan-id`（移山 ID）。新生成的文件分享链接使用 `/file-share/<ID>`；旧 `/s/<ID>` 及已有 Desk 管理书签继续可用。
+管理入口为 `/file-share`（文件分享）和 `/yishan-id`（移山 ID）。多域名版生成 `/file-share/s/<ID>`，原 `/file-share/<ID>` 和更早的 `/s/<ID>` 也必须执行同一份报告的域名、权限和版本校验。
+
+### 逐个接入文件分享域名（多域名版发布后）
+
+已在另一台自有服务器托管域名、只需按路径分流的例子，见[中企动力双机内网接入](cebest-intranet.md)。这种情况保留原 DNS 和公网证书，不套用整站迁移步骤。
+
+以下是运维步骤，不会因管理员登记域名而自动执行。公司/渠道须提供**完整主机名、DNS 联系人、证书签发及续期方式、是否需要员工登录**。对方只需将 A 或 CNAME 指向双方约定的公网入口；仅在整条链路支持 IPv6 时添加 AAAA。不要开放应用容器端口。
+
+1. 管理员先在文件分享 App 的域名管理中登记为待接入。为每个域名准备有效 HTTPS 证书和自动续期；证书私钥不放进应用、Git 或聊天。生产入口为宿主机 Nginx → `bizbase_slot` → 当前槽位的 frontend → 固定的 Frappe site，不为渠道新建 site。
+2. 为公司/渠道逐个声明**精确** `server_name`，不使用通配域名。内层 frontend 模板从 `/etc/nginx/bizbase-share-domains/*.conf` 读额外名称。将 root 管理的名单文件只读挂载至两槽位的 frontend，例如在部署用 `compose.yaml` 中增加以下配置；不改 backend、业务数据卷或活动槽位端口。`/etc/bizbase/share-hosts.conf` 内容如 `server_name report.channel-a.example report.channel-b.example;`，不要包含默认主站、`localhost` 或 IP。新增/移除域名后按发布窗口更新各槽，使重建或回退均使用当前名单。
+
+   ```yaml
+   services:
+     frontend:
+       configs:
+         - source: share_hosts
+           target: /etc/nginx/bizbase-share-domains/allowed.conf
+   configs:
+     share_hosts:
+       file: /etc/bizbase/share-hosts.conf
+   ```
+
+3. 用[渠道域名 vhost 样例](share-domain.conf.example)为每个渠道建立独立宿主机 vhost，替换样例域名及证书路径。不要再定义 `bizbase_slot`，不要把 3180/3181/3182 暴露在公网。宿主默认 vhost 应拒绝未配置 Host 和直接 IP，不要把不匹配的请求转进主站。外层覆盖传入的 `Host`、协议与代理头；内层固定 `X-Frappe-Site-Name`，但保留已匹配的外部 Host。密码页、带签名的资源和兼容路径都直达应用，不开启代理缓存，不落盘记录分享 URL。主站现有代理同样应覆盖这些头部。
+4. 渠道样例只开放报告与资源，**不会**把 Desk、API、登录和身份回调一并发布到渠道域名。需要内部员工/指定人员访问的自有域名，应使用受信任的公司站点 vhost，保留现有登录、静态资源和回调路径；确认本站认证方式支持该确切域名，单独完成域名登录验收后再选员工权限。不要假定其他域名能沿用主站登录 Cookie，或直接把员工登录开放给渠道。
+5. 取得维护授权后，分别检查内外层 `nginx -t`，在发布窗口应用。先核对外网 DNS 和证书链，再用测试报告验收：启用 A/未启用 B 时三个分享路径在 A 能用、在 B 不可用；`c/` 内 HTML、JS、CSS、图片按域名校验；停用 A 后已打开页面的后续资源请求也被拒绝。在各可用入口确认 CSP、`no-store`、密码登录与实际版本；资源响应没有 `Set-Cookie`，分享外壳可以签发 Cookie。确认无误后才把该域名开放给发布人。停用渠道时先在应用停用域名，再清理两层代理、证书及 DNS。
 
 ## PG16 schema 备份与恢复演练
 
