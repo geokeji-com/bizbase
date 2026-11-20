@@ -1,0 +1,79 @@
+name: bizbase-dev-pg
+
+x-bench: &bench
+  image: ${BIZBASE_DEV_IMAGE:-bizbase/local:postgres-16}
+  pull_policy: never
+  entrypoint: []
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+    - ../../apps/bizbase_mgmt:/home/frappe/frappe-bench/apps/bizbase_mgmt
+    - ../../apps/sales_board:/home/frappe/frappe-bench/apps/sales_board
+    - ../../apps/ops_board:/home/frappe/frappe-bench/apps/ops_board
+    - ../../apps/customer_board:/home/frappe/frappe-bench/apps/customer_board
+    - ../../apps/yishan_id:/home/frappe/frappe-bench/apps/yishan_id
+    - ../../apps/file_share:/home/frappe/frappe-bench/apps/file_share
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_root
+    secrets: [db_root]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis-cache:
+    image: redis:6.2-alpine
+  redis-queue:
+    image: redis:6.2-alpine
+    volumes: [redis_queue:/data]
+  setup:
+    <<: *bench
+    profiles: [setup]
+    secrets: [db_root, admin_password]
+    configs: [init_script]
+    command: [bash, /init_script]
+    depends_on:
+      db: {condition: service_healthy}
+      redis-cache: {condition: service_started}
+      redis-queue: {condition: service_started}
+  backend:
+    <<: *bench
+    command: [start.sh]
+  websocket:
+    <<: *bench
+    command: [node, /home/frappe/frappe-bench/apps/frappe/socketio.js]
+  scheduler:
+    <<: *bench
+    command: [bench, schedule]
+  worker:
+    <<: *bench
+    command: [bench, worker, --queue, "short,default,long"]
+  frontend:
+    <<: *bench
+    command: [nginx-entrypoint.sh]
+    depends_on: [backend, websocket]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: frontend
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+    ports: ["127.0.0.1:${BIZBASE_DEV_PORT:-8080}:8080"]
+
+configs:
+  init_script:
+    file: ./init-site.sh
+secrets:
+  db_root:
+    file: ${BIZBASE_DEV_SECRETS:-${HOME}/.local/share/bizbase-dev-pg}/db_root
+  admin_password:
+    file: ${BIZBASE_DEV_SECRETS:-${HOME}/.local/share/bizbase-dev-pg}/admin_password
+volumes:
+  pgdata: {}
+  sites: {}
+  logs: {}
+  redis_queue: {}

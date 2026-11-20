@@ -1,0 +1,35 @@
+ARG CRM_IMAGE=bizbase/erpnext-crm:16.55.0-16.0.4
+FROM ${CRM_IMAGE} AS core
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:0 apps/bizbase_mgmt apps/bizbase_mgmt
+COPY --chown=frappe:0 apps/sales_board apps/sales_board
+COPY --chown=frappe:0 apps/ops_board apps/ops_board
+COPY --chown=frappe:0 apps/customer_board apps/customer_board
+COPY --chown=frappe:0 apps/yishan_id apps/yishan_id
+COPY --chown=frappe:0 apps/file_share apps/file_share
+COPY deploy/prod/pg_compat.py /opt/bizbase/pg_compat.py
+COPY deploy/local-crm/nginx.conf.template /templates/nginx/frappe.conf.template
+RUN set -e; env/bin/python /opt/bizbase/pg_compat.py; \
+    env/bin/pip install --no-cache-dir flit_core==3.12.0; \
+    for app in yishan_id file_share bizbase_mgmt sales_board ops_board customer_board; do \
+      env/bin/pip install --no-cache-dir --no-deps --no-build-isolation -e "apps/$app"; \
+      ln -s "/home/frappe/frappe-bench/apps/$app/$app/public" "assets/$app"; \
+      printf "%s\n" "$app" >> sites/apps.txt; \
+    done; env/bin/pip check
+
+FROM core AS dependencies
+COPY --from=insights pyproject.toml /tmp/insights.toml
+RUN env/bin/python -c 'import tomllib; print(*tomllib.load(open("/tmp/insights.toml", "rb"))["project"]["dependencies"], sep="\n")' > /tmp/insights-requirements.txt \
+    && uv pip install --python env/bin/python --only-binary :all: --no-cache -r /tmp/insights-requirements.txt \
+    && env/bin/pip check
+
+FROM dependencies AS app
+COPY --from=insights --chown=frappe:0 . apps/insights
+RUN env/bin/pip install --no-deps --no-build-isolation -e apps/insights \
+    && env/bin/pip check \
+    && ln -s /home/frappe/frappe-bench/apps/insights/insights/public assets/insights \
+    && ls -1 apps > sites/apps.txt
+
+FROM app AS dev
+RUN test -s apps/insights/insights/www/_insights.html && test -s apps/insights/insights/public/frontend/index.html
