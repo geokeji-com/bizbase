@@ -5,13 +5,12 @@ ERPNext 自带 `sequence_id: 1`，CRM、Insights 未声明（按 100 处理）�
 这里集中改写一次，避免在各 App 的 hooks 里分散维护、互相抢位。
 
 第一行：移山 ID、文件分享、管理看板、销售看板、运营看板、客户看板。
-第二行：Insights、CRM、ERPNext、Build（Frappe 框架入口 /desk/build）。
+第二行：Insights、CRM、ERP、Build（Frappe 框架入口 /desk/build）。
 """
 
 APPS_SCREEN_ORDER = {
 	"yishan_id": 1,
-	"yishan_id_login": 1,
-	"static_share": 2,
+	"file_share": 2,
 	"bizbase_mgmt": 3,
 	"sales_board": 4,
 	"ops_board": 5,
@@ -23,6 +22,7 @@ APPS_SCREEN_ORDER = {
 }
 
 APPS_SCREEN_TITLES = {
+	"erpnext": "ERP",
 	"frappe": "Build",
 }
 

@@ -14,5 +14,6 @@ add_to_apps_screen = [
     }
 ]
 
-# 应用屏统一排序（两行：自研入口在前，Insights/CRM/ERPNext/Build 在后）
+# 应用屏统一排序（两行：自研入口在前，Insights/CRM/ERP/Build 在后）
 extend_bootinfo = ["bizbase_mgmt.apps_screen.apply"]
+app_include_js = ["/assets/bizbase_mgmt/apps-screen.js"]

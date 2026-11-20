@@ -1,5 +1,7 @@
 # 本地 GEO 运营 + ERPNext + Frappe CRM + Frappe HR 预览
 
+当前开发入口为 [PostgreSQL 16 预览](../local-pg/README.md)。本目录保留无 HR 的 CRM 基础镜像构建方法，以及已停止的旧 MariaDB 环境恢复资料。
+
 本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM 和 Frappe HR，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
 
 ## 固定版本
@@ -52,13 +54,13 @@ HR 此版本要求 Frappe、ERPNext `>=16.50.0,<17.0.0`，当前组合满足。�
 ```bash
 rtk proxy docker build --progress plain -f deploy/local-crm/Containerfile.geo_operations \
   -t geo_operations/local:0.0.1 apps/geo_operations
-rtk proxy docker build -f deploy/local-crm/Containerfile.yishan_id_login \
-  -t bizbase/local:yishan-id-0.1.0 apps/yishan_id_login
+rtk proxy docker build -f deploy/local-crm/Containerfile.yishan_id \
+  -t bizbase/local:yishan-id-0.1.0 apps/yishan_id
 rtk proxy docker build -f deploy/local-crm/Containerfile.static_share \
   -t bizbase/local:static-share-0.1.0 apps/static_share
 ```
 
-覆盖配置将仓库 `apps/geo_operations`、`apps/yishan_id_login` 和 `apps/static_share` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
+覆盖配置将仓库 `apps/geo_operations`、`apps/yishan_id` 和 `apps/static_share` 挂载到应用容器同名目录；后端可写，Nginx 只读。该目录不存在时启动失败，不会静默创建空目录覆盖 App。镜像使用 editable Python 安装，因此容器重建后仍能加载挂载的源码。修改 Python 代码后重启相应后端/worker；更改依赖时重新构建镜像。
 
 **安装 CRM / HR / GEO 运营后，启动必须同时带上本目录的覆盖文件。单独使用 `pwd.yml` 会恢复为缺少这些 App 代码的上游镜像。此覆盖文件用于本机开发，不作为生产发布配置。**
 

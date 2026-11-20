@@ -38,7 +38,18 @@ server {
 		add_header X-Content-Type-Options nosniff always;
 		add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 		add_header Content-Security-Policy "sandbox allow-scripts; frame-ancestors https://bizbase.geokeji.com" always;
-		try_files /assets/yishan_id_login/clarity-page.html =404;
+		try_files /assets/yishan_id/clarity-page.html =404;
+	}
+
+	# Retired Desk bookmarks only. Keep the suffix and filters; never redirect OIDC callbacks.
+	location ~ ^/desk/(?:static_share/|static-share/)?static-share(?:/(?:.*)|$) {
+		rewrite ^/desk/(?:static_share/|static-share/)?static-share(.*)$ /desk/file-share$1 redirect;
+	}
+	location ~ ^/desk/(?:static_share/|static-share/)?static-share-(?:access-log|role|user|version)(?:/|$) {
+		rewrite ^/desk/(?:static_share/|static-share/)?static-share-(.*)$ /desk/file-share-$1 redirect;
+	}
+	location ~ ^/desk/yishan[_-]id[_-]login/yishan-id-binding(?:/|$) {
+		rewrite ^/desk/yishan[_-]id[_-]login/(.*)$ /desk/yishan_id/$1 redirect;
 	}
 
 	location /assets {

@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "autoname": "field:yishan_uid",
+ "creation": "2026-11-18 20:00:00.000000",
+ "description": "移山 ID（yishan.uid）与 BizBase 用户的一对一绑定。只有启用的绑定才能用移山 ID 登录。",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "yishan_uid",
+  "display_name",
+  "column_break_main",
+  "user",
+  "enabled",
+  "last_login"
+ ],
+ "fields": [
+  {
+   "description": "移山 ID 签发的永久员工标识（yishan.uid），首次登录时自动登记。",
+   "fieldname": "yishan_uid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Yishan UID",
+   "reqd": 1,
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "description": "首次登录时移山 ID 提供的姓名，仅供管理员核对。",
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "mandatory_depends_on": "enabled",
+   "options": "User",
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "last_login",
+   "fieldtype": "Datetime",
+   "label": "Last Login",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-18 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "yishan_id",
+ "name": "Yishan ID Binding",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 0,
+   "export": 1,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "display_name",
+ "track_changes": 1
+}

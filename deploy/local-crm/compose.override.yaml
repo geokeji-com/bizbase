@@ -1,4 +1,4 @@
-# 与项目根目录 pwd.yml 一起使用，复用 bizbase 现有数据库和站点卷。
+# 旧 MariaDB 预览。移山 ID 与 Nginx 使用此镜像的匹配版本，便于恢复旧站。
 x-crm-image: &crm-image
   image: bizbase/local:static-share-0.1.0
   pull_policy: never
@@ -13,11 +13,6 @@ x-crm-image: &crm-image
       target: /home/frappe/frappe-bench/apps/geo_operations
       bind:
         create_host_path: false
-    - type: bind
-      source: ./apps/yishan_id_login
-      target: /home/frappe/frappe-bench/apps/yishan_id_login
-      bind:
-        create_host_path: false
 
 services:
   backend:
@@ -25,10 +20,8 @@ services:
   frontend:
     <<: *crm-image
     volumes:
-      - ./deploy/local-crm/nginx.conf.template:/templates/nginx/frappe.conf.template:ro
       - ./apps/static_share:/home/frappe/frappe-bench/apps/static_share:ro
       - ./apps/geo_operations:/home/frappe/frappe-bench/apps/geo_operations:ro
-      - ./apps/yishan_id_login:/home/frappe/frappe-bench/apps/yishan_id_login:ro
   configurator:
     <<: *crm-image
   create-site:

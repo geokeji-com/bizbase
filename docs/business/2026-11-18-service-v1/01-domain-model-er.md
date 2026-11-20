@@ -20,7 +20,7 @@
 
 只读核查了运行中站点 `frontend` 的源码（容器 `bizbase-backend-1`，`/home/frappe/frappe-bench/apps`，2026-11-18）：
 
-- 已装 App：`frappe`、`erpnext`、`crm`、`hrms`、`geo_operations`（空 App，无 DocType）。源码目录另有 `yishan_id_login`（本设计不涉及）。官方 App 共约 1052 个 DocType。
+- 已装 App：`frappe`、`erpnext`、`crm`、`hrms`、`geo_operations`（空 App，无 DocType）。源码目录另有 `yishan_id`（本设计不涉及）。官方 App 共约 1052 个 DocType。
 - 已被占用、与本设计相关的名字：`Service Level Agreement`、`Service Day`、`Brand`、`Competitor`、`Competitor Detail`、`CRM Product`、`Production Plan`、`Subscription Plan`、`Maintenance Schedule`、`Customer Group`、`User Group`、`Email Group`、`Role Profile`、`POS Profile`、`UTM Source`、`CRM Lead Source`、`Support Search Source`、`Target Detail`、`Supplier Scorecard Criteria`、`Appraisal`、`Skill Assessment`、`Delivery Note`、`Delivery Schedule Item`、`Holiday List`。框架还有 `Geolocation Settings`（地理信息 Geo 模块）。
 - 以 `GEO ` 开头的 DocType：无。本文新建的全部 DocType 都带 `GEO ` 前缀，与上述名字不冲突。
 - `Contract`：可提交（`is_submittable=1`），命名 `CON-.YYYY.-.#####`，字段含 `party_type`、`party_name`（Dynamic Link）、`start_date`、`end_date`、`contract_terms`、`fulfilment_terms`、`amended_from` 等。
