@@ -27,10 +27,22 @@ APPS_SCREEN_TITLES = {
 }
 
 
+# These deployed Workspace names are database keys: change only their public URLs.
+# Derive aliases from app_data, so an absent app (including retired GEO) gains no route.
+WORKSPACE_APPS = {"bizbase_mgmt", "sales_board", "ops_board", "customer_board", "geo_operations"}
+
+
 def apply(bootinfo):
+	aliases = {}
 	for app in bootinfo.get("app_data") or []:
 		name = app.get("app_name")
 		if name in APPS_SCREEN_ORDER:
 			app["sequence_id"] = APPS_SCREEN_ORDER[name]
 		if name in APPS_SCREEN_TITLES:
 			app["app_title"] = APPS_SCREEN_TITLES[name]
+		if name in WORKSPACE_APPS:
+			slug = name.replace("_", "-")
+			aliases[slug] = name
+			if app.get("app_route") == f"/desk/{name}":
+				app["app_route"] = f"/desk/{slug}"
+	bootinfo["bizbase_workspace_aliases"] = aliases

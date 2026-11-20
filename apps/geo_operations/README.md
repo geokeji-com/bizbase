@@ -1,6 +1,6 @@
 # GEO 运营
 
-显示名称统一为 **GEO 运营**；Python 包、App 安装标识、标准模块、工作区内部名称统一为 `geo_operations`，入口为 `/desk/geo_operations`。中文界面通过应用自带翻译显示模块和工作区名称。
+显示名称统一为 **GEO 运营**；Python 包、App 安装标识、标准模块、工作区内部名称统一为 `geo_operations`，单独安装时原生入口为 `/desk/geo_operations`；与 BizBase 应用屏整合时使用 `/desk/geo-operations` 并兼容旧地址。当前开发与正式站均已用四个看板替代此应用，不会因添加别名而恢复入口。中文界面通过应用自带翻译显示模块和工作区名称。
 
 版本 `0.0.1`：空 App，包含应用入口、标准模块和空工作区，无业务表或业务数据。工作区仅向 System Manager 开放。
 

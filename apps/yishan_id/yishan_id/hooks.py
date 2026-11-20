@@ -15,8 +15,8 @@ add_to_apps_screen = [
 ]
 
 # Both Desk and website pages count navigation through a first-party, isolated frame.
-app_include_js = ["/assets/yishan_id/clarity-features.js", "/assets/yishan_id/clarity-navigation.js"]
-web_include_js = app_include_js.copy()
+web_include_js = ["/assets/yishan_id/clarity-features.js", "/assets/yishan_id/clarity-navigation.js"]
+app_include_js = [*web_include_js, "/assets/yishan_id/desk-urls.js"]
 after_request = ["yishan_id.usage.standalone_view"]
 
 website_redirects = [

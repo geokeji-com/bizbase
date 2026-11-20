@@ -44,4 +44,4 @@ BizBase 是公司的业务基础平台，提供共享数据、通用能力和基
 
 [官方应用与 GEO 业务调研（2026-11-17）](research/README.md)记录应用候选、厂商流程及数据模型建议。模型尚待结合公司实际业务确认，未据此安装新增应用或创建生产业务表。
 
-当前自研应用已按 D-016 完整改名为「GEO 运营」，技术标识 `geo_operations`；源码在 `apps/geo_operations`，使用 `/desk/geo_operations`。历史方案中的 BizBase App 称呼不表示仍安装旧包。
+D-016 当时将自研应用改名为「GEO 运营」（`geo_operations`）；现用开发和正式站已用四个角色看板替代。自研卡片、模块、技术 ID、公开 URL 与旧书签的对应关系见[自研应用命名](naming.md)。历史方案里的 BizBase 或 GEO App 称呼不代表仍安装旧包。

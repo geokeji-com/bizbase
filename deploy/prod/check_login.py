@@ -35,7 +35,7 @@ def check():
             for old, new in (
                 ('/file-share', '/desk/file-share'),
                 ('/desk/static-share', '/desk/file-share'),
-                ('/desk/yishan_id_login/yishan-id-binding', '/desk/yishan_id/yishan-id-binding'),
+                ('/desk/yishan_id_login/yishan-id-binding', '/desk/yishan-id/yishan-id-binding'),
             ):
                 redirect = session.get(BASE + old, timeout=20, allow_redirects=False)
                 dest = urlsplit(redirect.headers.get('Location', ''))
