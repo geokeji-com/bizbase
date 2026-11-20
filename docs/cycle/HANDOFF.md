@@ -1,6 +1,16 @@
 # BizBase 会话交接
 
-**当前交接（2026-11-19）**　新窗口先读[第四步评审与第五步起点](2026-11-19-planning-handoff.md)。前三步已完成，[第四步产品评审总览（HTML）](../planning/product-review.html)可在一页阅读交付地图、PRD、验收用例并操作原型。第五步尚未实施。业务决定以 [decisions.md](decisions.md) 为准。
+**生产发布（2026-11-20）**　公网已从 legacy:3180 切至 blue:3181，生产镜像配置 ID `69201531ea25`。GEO 已由四个独立空看板替代。旧个性化工作区已原样归档，旧用户的模块禁用已延续到四看板。两个应用和文件分享五种单据已完成正式库更名。公网 Chromium 已通过六卡片、旧书签、详情刷新和匿名附件拒绝验收；管理员登录退出和新 OIDC 授权跳转已通过。员工本人扫码及身份平台退出联动待实测，D 窗口保持 `published`。正式冻结恢复点 `20261120T020915Z-f81d19d7` 已独立还原并核验异机加密副本。下文 legacy 状态为切换前记录。
+
+**环境交接（2026-11-20）**　[8080 桌面](http://127.0.0.1:8080/desk/desktop) 现由 PostgreSQL 16 开发站 `bizbase-dev-pg` 提供。Compose、登录和本地恢复说明见 [local-pg](../../deploy/local-pg/README.md)。首次设置使用「BizBase 本地测试公司」、人民币、上海时区和标准科目表。全站 migrate 成功，十个应用版本通过校验，Insights 内置 Site DB 在迁移后执行 PostgreSQL 查询得到 `1`。Chrome 已核对第一行移山 ID、文件分享、管理看板、销售看板、运营看板、客户看板，第二行 Insights、CRM、ERP、Build，且能实际打开 Insights 看板首页。用普通 Desk 用户检查，移山 ID 绑定和四个看板均不可见，临时账号已回滚。新站未安装 HRMS 与 GEO 运营。
+
+文件分享技术名已在本地由 `static_share` 改为 `file_share`，在停止写入并备份后原地迁移。六个卡片、分享详情和旧书签已经浏览器验收：[文件分享验收](../../apps/file_share/ACCEPTANCE.md)。该步骤发现并验证了 SQL 改名后需定向失效本站 `defaults::__global` 缓存。生产最新只读盘点仍为 legacy:3180（`yishan_id_login`、`static_share`、`geo_operations`），站点本地备份目录未发现数据库备份，RDS 云备份和可恢复时间点待核实。
+
+原 `bizbase` 项目的 MariaDB 站点已停止，保留旧容器和四个卷，未迁移旧数据。恢复时先释放 8080，再启动原有容器。旧应用容器的还原挂载位于 `~/.cache/bizbase-preview/legacy-C2DVUbRC/snapshot.override.json`。生产仍用旧安装名，D 类发布须另获授权。[改名演练、回调与回退](../../deploy/prod/OPERATIONS.md#已有站点更名移山-id)。
+
+本地 `pgtest.local` 完成移山 ID 改名和 migrate。额外的 `yid-rename-check.local` 使用同一实验 PG 实例的隔离还原库，验证禁用模块、用户版本记录、维护模式保护与重复运行。`pgcheck.local` 已安装 ERPNext 和 CRM，并应用[固定版本兼容补丁](../../deploy/prod/pg_compat.py)。已验证物料选择器、联系人查询、资产负债表、损益表及同站 CRM 线索→商机→ERP 客户。财报用一笔借贷平衡的 123 元测试分录验收，两份报表的金额均匹配；测试结束后已回滚。CRM 测试使用虚构记录。生产未执行该迁移。实验站点待最终验收后处理。
+
+**产品规划交接（2026-11-19）**　新窗口先读[第四步评审与第五步起点](2026-11-19-planning-handoff.md)。前三步已完成，[第四步产品评审总览（HTML）](../planning/product-review.html)可在一页阅读交付地图、PRD、验收用例并操作原型。第五步尚未实施。业务决定以 [decisions.md](decisions.md) 为准。
 
 以下第 1–8 节保留 2026-11-18 的环境、业务背景和撤回记录。其运行状态、待定事项和操作顺序均为当日快照。
 
