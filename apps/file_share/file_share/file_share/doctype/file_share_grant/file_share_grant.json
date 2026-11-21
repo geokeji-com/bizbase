@@ -1,0 +1,26 @@
+{
+ "doctype": "DocType",
+ "name": "File Share Grant",
+ "module": "File Share",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "autoname": "hash",
+ "title_field": "device_label",
+ "field_order": ["device_label", "employee", "issued_at", "expires_at", "last_used_at", "revoked_at", "revoked_by"],
+ "fields": [
+  {"fieldname":"device_label","fieldtype":"Data","label":"终端名称","read_only":1,"in_list_view":1},
+  {"fieldname":"employee","fieldtype":"Link","options":"User","label":"授权员工","read_only":1,"in_list_view":1,"in_standard_filter":1,"search_index":1},
+  {"fieldname":"issued_at","fieldtype":"Datetime","label":"签发时间","read_only":1,"in_list_view":1},
+  {"fieldname":"expires_at","fieldtype":"Datetime","label":"到期时间","read_only":1,"in_list_view":1},
+  {"fieldname":"last_used_at","fieldtype":"Datetime","label":"最近调用","read_only":1},
+  {"fieldname":"revoked_at","fieldtype":"Datetime","label":"禁用时间","read_only":1,"in_list_view":1},
+  {"fieldname":"revoked_by","fieldtype":"Data","label":"禁用人","read_only":1}
+ ],
+ "permissions": [{"role":"Desk User","read":1},{"role":"System Manager","read":1}],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}
