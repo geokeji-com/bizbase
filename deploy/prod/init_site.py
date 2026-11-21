@@ -17,7 +17,7 @@ from frappe.utils.scheduler import enable_scheduler
 from frappe.utils.synchronization import filelock
 
 SITE = "bizbase.geokeji.com"
-BOARDS = ("bizbase_mgmt", "sales_board", "ops_board", "customer_board")
+BOARDS = ("management_board", "sales_board", "ops_board", "customer_board")
 APPS = ("frappe", "erpnext", "crm", "insights", "yishan_id", "file_share", *BOARDS)
 SEED_HASH = "b35b740c07c0450f6d93ad4ec07d7e68057ea81caa6efbbcd7cd2bb28c2bbb35"
 

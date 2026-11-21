@@ -5,8 +5,8 @@ from importlib.metadata import version
 import frappe
 
 EXPECTED = {
-    "frappe": "16.56.0", "erpnext": "16.55.0", "crm": "16.0.4", "insights": "3.50.1",
-    "yishan_id": "0.1.0", "file_share": "0.1.0", "bizbase_mgmt": "0.0.1",
+    "frappe": "16.56.0", "erpnext": "16.55.0", "insights": "3.50.1",
+    "yishan_id": "0.1.0", "file_share": "0.1.0", "management_board": "0.0.1",
     "sales_board": "0.0.1", "ops_board": "0.0.1", "customer_board": "0.0.1",
 }
 
@@ -19,8 +19,14 @@ def main():
         if frappe.db.db_type != "postgres" or frappe.db.sql("SHOW server_version_num")[0][0][:2] != "16":
             raise RuntimeError("expected PostgreSQL 16")
         installed = {app: version(app) for app in frappe.get_installed_apps()}
-        if installed != EXPECTED:
+        expected = EXPECTED.copy()
+        if "crm" in installed:  # Existing site awaiting explicit retirement.
+            expected["crm"] = "16.0.4"
+        if installed != expected:
             raise RuntimeError(f"unexpected installed app versions: {installed}")
+        if (frappe.db.get_value("Workspace", "management_board", "module") != "management_board"
+                or frappe.db.get_value("Module Def", "management_board", "app_name") != "management_board"):
+            raise RuntimeError("管理看板工作区或模块归属不符")
         if frappe.db.get_value("Insights Data Source v3", "Site DB", "database_type") != "PostgreSQL":
             raise RuntimeError("Insights Site DB has the wrong database type")
         from insights.insights.doctype.insights_data_source_v3.connectors.frappe_db import get_sitedb_connection
@@ -30,7 +36,7 @@ def main():
                 raise RuntimeError("unexpected result from Insights PostgreSQL connector")
         finally:
             connection.disconnect()
-        print("PostgreSQL 16；10 个应用版本正确；Insights 已通过站点数据源执行查询。")
+        print("PostgreSQL 16；应用版本正确；Insights 已通过站点数据源执行查询。")
     finally:
         frappe.destroy()
 

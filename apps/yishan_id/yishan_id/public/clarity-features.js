@@ -177,8 +177,8 @@
       workspace-custom-block workspace-link workspace-number-card workspace-quick-list workspace-shortcut
       workspace-sidebar workspace-sidebar-item workstation workstation-cost workstation-operating-component
       workstation-operating-component-account workstation-type workstation-working-hour yishan-id-binding`),
-    workspace: words(`accounting assets automation bizbase-mgmt build buying crm customer-board email erpnext-settings
-      financial-reports frappe-crm home integrations invoicing manufacturing ops-board payments printing projects
+    workspace: words(`accounting assets automation build buying crm customer-board email erpnext-settings financial-reports
+      frappe-crm home integrations invoicing management-board manufacturing ops-board payments printing projects
       quality sales-board selling stock support system users website`),
     page: words(`backups bom-comparison-tool component-explorer dashboard-view desktop insights permission-manager
       point-of-sale print print-format-builder print-format-builder-beta sales-funnel setup-wizard stock-balance

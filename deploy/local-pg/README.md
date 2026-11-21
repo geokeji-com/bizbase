@@ -9,7 +9,7 @@
    rtk proxy bash -ec 'umask 077; d=${BIZBASE_DEV_SECRETS:-$HOME/.local/share/bizbase-dev-pg}; mkdir -p "$d"; chmod 700 "$d"; for k in db_root admin_password; do test -s "$d/$k" || openssl rand -hex 32 > "$d/$k"; chmod 640 "$d/$k"; done'
    ```
 
-3. 首次初始化时只启动数据库和 Redis。重复迁移时先停止本项目的 frontend、backend、worker、scheduler 和 websocket，为全站 migrate 留出内存，再执行以下命令。
+3. **已有 `bizbase_mgmt` 站点**先按[管理看板更名手册](../prod/management-board-migration.md)停写、备份、改数据库身份和共享清单；不能直接跑 setup 或另装新 App。首次初始化时只启动数据库和 Redis。重复迁移时先停止本项目的 frontend、backend、worker、scheduler 和 websocket，为全站 migrate 留出内存，再执行以下命令。
 
    ```bash
    rtk proxy docker compose -f deploy/local-pg/compose.yaml run --rm setup
@@ -19,7 +19,7 @@
    rtk proxy curl -fsS http://127.0.0.1:8080/api/method/ping
    ```
 
-   安装清单为 frappe、ERPNext、CRM、移山 ID、文件分享、管理/销售/运营/客户四个看板与 Insights；没有 HRMS 或 GEO 运营。管理员账号 `Administrator`，密码仅在本机密码文件中查看。业务数据库只在 Compose 网络可达。六个自研应用以源码目录绑定给 bench，Build 标准定义可回写仓库。变更 Python 依赖或静态资源须重建镜像。
+   新站使用 ERPNext 内置 CRM（销售人员从 ERP 卡片进入）。独立 CRM 仅在待迁移的旧站保留。安装清单为 frappe、ERPNext、移山 ID、文件分享、管理/销售/运营/客户四个看板与 Insights。管理员账号 `Administrator`，密码仅在本机密码文件中查看。业务数据库只在 Compose 网络可达。六个自研应用以源码目录绑定给 bench，Build 标准定义可回写仓库。变更 Python 依赖或静态资源须重建镜像。
 
 ### 文件分享的本地域名验收
 

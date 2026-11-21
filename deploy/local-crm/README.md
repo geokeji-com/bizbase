@@ -1,6 +1,6 @@
-# 本地 GEO 运营 + ERPNext + Frappe CRM + Frappe HR 预览
+# CRM 基础镜像与旧 MariaDB 预览档案
 
-当前开发入口为 [PostgreSQL 16 预览](../local-pg/README.md)。本目录保留无 HR 的 CRM 基础镜像构建方法，以及已停止的旧 MariaDB 环境恢复资料。
+当前开发入口为 [PostgreSQL 16 预览](../local-pg/README.md)。当前构建仅沿用本目录的无 HR CRM 基础镜像。旧 MariaDB 预览的镜像、Compose 覆盖文件及一次性迁移脚本仅供历史版本使用。复核 2026-11-18 的 GEO 更名请在提交 `53378de` 的独立检出目录中查看当时的 README；复核后续含移山 ID 与静态分享的旧预览请使用 `7e282a3` 的完整检出。各版本的说明、源码、构建上下文及挂载路径需配套使用。
 
 本配置在 `pwd.yml` 的本地演示环境上增加独立 Frappe CRM 和 Frappe HR，共用现有 `bizbase` 站点、数据库和文件卷。它不代表生产部署方案。
 
@@ -140,7 +140,7 @@ docker compose -p bizbase -f pwd.yml -f deploy/local-crm/compose.override.yaml l
 
 ## 空 GEO 运营 App 与 Build（2026-11-18，D-014）
 
-沿用原 `bizbase` Compose 项目、`frontend` 站点及数据卷。App 源码见 [apps/geo_operations](../../apps/geo_operations/README.md)，仅提供 `geo_operations` 标准模块和空工作区；不包含已撤回的客户目录实现，不接入生产。
+沿用原 `bizbase` Compose 项目、`frontend` 站点及数据卷。当时的 App 源码见 `53378de:apps/geo_operations`，仅提供 `geo_operations` 标准模块和空工作区；不包含已撤回的客户目录实现，不接入生产。
 
 首次安装：先按上文完成备份并停止 scheduler/worker，再切换应用镜像；无需重建数据库或 Redis。执行：
 

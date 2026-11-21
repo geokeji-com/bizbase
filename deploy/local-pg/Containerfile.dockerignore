@@ -1,6 +1,6 @@
 **
 !apps/
-!apps/bizbase_mgmt/**
+!apps/management_board/**
 !apps/sales_board/**
 !apps/ops_board/**
 !apps/customer_board/**

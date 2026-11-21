@@ -30,7 +30,8 @@ RUN env/bin/python /opt/bizbase-mail/localize_mail_subjects.py \
 RUN env/bin/python /opt/bizbase/pg_compat.py --check \
     && env/bin/pip check \
     && env/bin/python -c 'import crm, erpnext, frappe, insights; assert (frappe.__version__, erpnext.__version__, crm.__version__, insights.__version__) == ("16.56.0", "16.55.0", "16.0.4", "3.50.1")' \
-    && test ! -d apps/hrms && test ! -d apps/geo_operations \
+    && LC_ALL=C ls -1 apps | diff - sites/apps.txt \
+    && printf '%s\n' crm customer_board erpnext file_share frappe insights management_board ops_board sales_board yishan_id | diff - sites/apps.txt \
     && test -f assets/frappe/dist/js/desk.bundle.*.js \
     && test -f assets/erpnext/dist/js/erpnext.bundle.*.js \
     && test -f assets/file_share/icon.svg

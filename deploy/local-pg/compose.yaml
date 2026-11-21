@@ -7,7 +7,7 @@ x-bench: &bench
   volumes:
     - sites:/home/frappe/frappe-bench/sites
     - logs:/home/frappe/frappe-bench/logs
-    - ../../apps/bizbase_mgmt:/home/frappe/frappe-bench/apps/bizbase_mgmt
+    - ../../apps/management_board:/home/frappe/frappe-bench/apps/management_board
     - ../../apps/sales_board:/home/frappe/frappe-bench/apps/sales_board
     - ../../apps/ops_board:/home/frappe/frappe-bench/apps/ops_board
     - ../../apps/customer_board:/home/frappe/frappe-bench/apps/customer_board

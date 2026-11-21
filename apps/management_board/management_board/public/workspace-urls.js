@@ -23,7 +23,8 @@
 		const slug = view === "Workspaces" && name?.replaceAll("_", "-");
 		if (slug && frappe.boot?.bizbase_workspace_aliases?.[slug] === name) {
 			const path = location.pathname.replace(/\/$/, "");
-			if (path === `/desk/${name}` || path === `/desk/${slug}`) {
+			const bookmark = path.match(/^\/desk\/([^/]+)$/)?.[1];
+			if (bookmark === name || frappe.boot.bizbase_workspace_aliases[bookmark] === name) {
 				if (location.pathname !== `/desk/${slug}`) {
 					history.replaceState(history.state, "", `/desk/${slug}${location.search}${location.hash}`);
 				}

@@ -2,7 +2,7 @@ ARG CRM_IMAGE=bizbase/erpnext-crm:16.55.0-16.0.4
 FROM ${CRM_IMAGE} AS core
 USER frappe
 WORKDIR /home/frappe/frappe-bench
-COPY --chown=frappe:0 apps/bizbase_mgmt apps/bizbase_mgmt
+COPY --chown=frappe:0 apps/management_board apps/management_board
 COPY --chown=frappe:0 apps/sales_board apps/sales_board
 COPY --chown=frappe:0 apps/ops_board apps/ops_board
 COPY --chown=frappe:0 apps/customer_board apps/customer_board
@@ -12,7 +12,7 @@ COPY deploy/prod/pg_compat.py /opt/bizbase/pg_compat.py
 COPY deploy/local-crm/nginx.conf.template /templates/nginx/frappe.conf.template
 RUN set -e; env/bin/python /opt/bizbase/pg_compat.py; \
     env/bin/pip install --no-cache-dir flit_core==3.12.0; \
-    for app in yishan_id file_share bizbase_mgmt sales_board ops_board customer_board; do \
+    for app in yishan_id file_share management_board sales_board ops_board customer_board; do \
       env/bin/pip install --no-cache-dir --no-deps --no-build-isolation -e "apps/$app"; \
       ln -s "/home/frappe/frappe-bench/apps/$app/$app/public" "assets/$app"; \
       printf "%s\n" "$app" >> sites/apps.txt; \

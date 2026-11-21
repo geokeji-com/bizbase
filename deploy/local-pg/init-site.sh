@@ -1,9 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 site=frontend
-apps=(frappe erpnext crm yishan_id file_share bizbase_mgmt sales_board ops_board customer_board insights)
+apps=(frappe erpnext yishan_id file_share management_board sales_board ops_board customer_board insights)
+if [[ -f sites/$site/site_config.json ]] && { grep -Fxq bizbase_mgmt sites/apps.txt || ! grep -Fxq management_board sites/apps.txt; }; then
+  printf '%s\n' '已有站请先按 deploy/prod/management-board-migration.md 在旧镜像离线迁移，不可直接覆盖清单。' >&2
+  exit 1
+fi
 for app in "${apps[@]}"; do test -d "apps/$app"; done
 printf '%s\n' "${apps[@]}" > sites/apps.txt
+# The base image ships CRM. Keep it importable for sites awaiting data migration.
+printf '%s\n' crm >> sites/apps.txt
 bench set-config -g db_host db
 bench set-config -gp db_port 5432
 bench set-config -g redis_cache redis://redis-cache:6379

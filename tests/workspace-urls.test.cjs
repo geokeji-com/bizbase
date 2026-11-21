@@ -4,11 +4,11 @@ const test = require("node:test");
 const {readFileSync} = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const script = readFileSync(path.join(__dirname, "../apps/bizbase_mgmt/bizbase_mgmt/public/workspace-urls.js"), "utf8");
+const script = readFileSync(path.join(__dirname, "../apps/management_board/management_board/public/workspace-urls.js"), "utf8");
 
-function desk(url, visible = true) {
+function desk(url, visible = true, name = "sales_board") {
 	const nativeWrites = [];
-	const workspace = {name: "sales_board", public: 1};
+	const workspace = {name, public: 1};
 	const location = new URL(url, "http://desk.test");
 	const router = {
 		convert_to_standard_route(route) {
@@ -20,8 +20,9 @@ function desk(url, visible = true) {
 		assert.equal(state, this.state);
 		location.href = new URL(relative, location).href;
 	}};
-	vm.runInNewContext(script, {frappe: {router, workspaces: visible ? {sales_board: workspace} : {},
-		boot: {bizbase_workspace_aliases: {"sales-board": "sales_board"}}}, location, history});
+	vm.runInNewContext(script, {frappe: {router, workspaces: visible ? {[name]: workspace} : {},
+		boot: {bizbase_workspace_aliases: {"sales-board": "sales_board", "management-board": "management_board",
+			"bizbase-mgmt": "management_board", bizbase_mgmt: "management_board"}}}, location, history});
 	function navigate() {
 		router.current_route = router.convert_to_standard_route(location.pathname.replace("/desk/", "").split("/"));
 		router.write_shell_into_url();
@@ -37,6 +38,18 @@ for (const spelling of ["sales_board", "sales-board", "sales_board/", "sales-boa
 		assert.equal(page.location.href, "http://desk.test/desk/sales-board?filter=A%2FB#MiXeD");
 		assert.deepEqual(page.navigate(), ["Workspaces", "sales_board"]);
 		assert.equal(page.nativeWrites.length, 0);
+	});
+}
+
+for (const bookmark of ["bizbase_mgmt", "bizbase-mgmt", "management_board", "management-board"]) {
+	test(`management bookmark ${bookmark} resolves and refreshes`, () => {
+		const page = desk(`/desk/${bookmark}/?filter=A%2FB#MiXeD`, true, "management_board");
+		assert.deepEqual(page.navigate(), ["Workspaces", "management_board"]);
+		assert.equal(page.location.href, "http://desk.test/desk/management-board?filter=A%2FB#MiXeD");
+		assert.deepEqual(page.navigate(), ["Workspaces", "management_board"]);
+		const hidden = desk(`/desk/${bookmark}`, false, "management_board");
+		assert.deepEqual(hidden.navigate(), [bookmark]);
+		assert.equal(hidden.location.pathname, `/desk/${bookmark}`);
 	});
 }
 

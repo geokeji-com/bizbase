@@ -30,7 +30,7 @@ def check():
         call('POST', '/api/method/login', data={'usr': 'Administrator', 'pwd': password})
         try:
             assert call('GET', '/api/method/frappe.auth.get_logged_user').json()['message'] == 'Administrator'
-            desk = call('GET', '/desk/bizbase_mgmt')
+            desk = call('GET', '/desk/management-board')
             assert 'text/html' in desk.headers.get('Content-Type', '')
             for old, new in (
                 ('/file-share', '/desk/file-share'),
@@ -43,7 +43,8 @@ def check():
                     raise RuntimeError(f'{old}: wrong canonical route')
                 call('GET', new)
             call('GET', '/assets/file_share/icon.svg')
-            for board in ('bizbase_mgmt', 'sales_board', 'ops_board', 'customer_board'):
+            call('GET', '/assets/management_board/icon.svg')
+            for board in ('management_board', 'sales_board', 'ops_board', 'customer_board'):
                 workspace = call('GET', f'/api/resource/Workspace/{board}').json()['data']
                 assert workspace['name'] == workspace['module'] == board
         finally:

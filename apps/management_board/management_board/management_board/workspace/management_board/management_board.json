@@ -1,7 +1,7 @@
 {
  "charts": [],
  "content": "[]",
- "creation": "2026-11-18 15:42:57.751121",
+ "creation": "2026-11-19 21:40:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -9,12 +9,12 @@
  "icon": "layers",
  "idx": 0,
  "is_hidden": 0,
- "label": "geo_operations",
+ "label": "management_board",
  "links": [],
- "modified": "2026-11-18 17:03:56.522269",
+ "modified": "2026-11-19 21:40:00.000000",
  "modified_by": "Administrator",
- "module": "geo_operations",
- "name": "geo_operations",
+ "module": "management_board",
+ "name": "management_board",
  "number_cards": [],
  "owner": "Administrator",
  "public": 1,
@@ -27,6 +27,6 @@
  "sequence_id": 0.0,
  "shortcuts": [],
  "standard": 1,
- "title": "geo_operations",
+ "title": "management_board",
  "type": "Workspace"
 }

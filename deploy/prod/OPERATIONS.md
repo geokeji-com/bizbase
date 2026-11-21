@@ -12,6 +12,8 @@ RDS 数据库 `bizbase` 的业务表只放在 `bizbase_app` schema，不需要 `
 
 升级或录入正式业务数据前，确认 RDS 备份覆盖和可恢复性，并为附件、站点配置（含加密密钥）配置受保护的异机备份和恢复演练。只有数据库快照不能恢复附件与密钥。
 
+当前仓库的管理看板安装标识为 `management_board`，Desk 入口为 `/desk/management-board`。下文「已有站点更名移山 ID」记录 2026-11-20 已完成的迁移窗口，其中的 `bizbase_mgmt` 是该窗口实际安装的标识。`routes_window.sh`、`rehearse_routes.py`、`rehearsal_checks.py` 和 `preserve_geo.py` 与当时的镜像配套，供核对历史迁移使用。
+
 ## 发布
 
 日常发布用 `/opt/bizbase-prod/deploy.sh` 做蓝绿切换，不再对运行中的项目执行 `docker compose up`，原地重建容器会让入口 502 数十秒。两套槽位 `bizbase-prod-blue`（3181）和 `bizbase-prod-green`（3182）共用站点目录、数据库与 Redis。脚本先在空闲槽位启动 web 进程，健康检查和冒烟测试通过后改写宿主机 Nginx 的 upstream 并 reload，然后交接 worker 与 scheduler。旧槽位 web 进程保留，可秒级回滚。尚未切换过的原 `bizbase-prod` 项目（3180）视为第一个槽位。

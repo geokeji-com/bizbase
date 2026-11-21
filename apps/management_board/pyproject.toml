@@ -1,5 +1,5 @@
 [project]
-name = "bizbase_mgmt"
+name = "management_board"
 description = "管理看板"
 authors = [{ name = "geokeji-com" }]
 requires-python = ">=3.14"
