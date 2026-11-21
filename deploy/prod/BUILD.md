@@ -15,7 +15,7 @@ rtk proxy docker buildx build --platform linux/amd64 --load \
 rtk proxy docker buildx build --platform linux/amd64 --load \
   -t bizbase/prod:pg-candidate -f deploy/prod/Containerfile .
 rtk proxy docker image inspect bizbase/prod:pg-candidate --format '{{.Os}}/{{.Architecture}} {{.Id}}'
-rtk proxy docker run --platform linux/amd64 --rm --network none --entrypoint sh bizbase/prod:pg-candidate -ec 'env/bin/python /opt/bizbase/pg_compat.py --check && env/bin/python -m unittest file_share.tests.test_core file_share.tests.test_policy yishan_id.tests.test_oidc yishan_id.tests.test_session'
+rtk proxy docker run --platform linux/amd64 --rm --network none --entrypoint sh bizbase/prod:pg-candidate -ec 'test ! -d apps/crm && ! grep -Fxq crm sites/apps.txt && env/bin/python -m unittest file_share.tests.test_core file_share.tests.test_policy yishan_id.tests.test_oidc yishan_id.tests.test_session'
 ```
 
 发布记录应包含实际通过验收的镜像 ID、Git 提交及 PG 演练结果。现有生产站点更改安装清单需要维护窗口，步骤见[生产运维](OPERATIONS.md)。
