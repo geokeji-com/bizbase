@@ -25,3 +25,12 @@
 四个看板原有的 Module Def 和 Workspace 名也是下划线形式。它们是已部署的键：权限、已禁用的模块、个人工作区和桌面布局均可能引用它们。管理看板由 `bizbase_mgmt` 统一为 `management_board`，已有站点必须按[管理看板迁移说明](../deploy/prod/management-board-migration.md)迁移这些引用，不可卸载重装；其余三个看板无需迁移。由管理看板应用提供的 BizBase 应用屏给已安装的工作区分配上述 URL，访问仍经 Frappe 当前用户的工作区列表解析，先前保存的地址会在同一页面规范化；保留查询参数与锚点。单独安装某个看板、没有 BizBase 应用屏整合层时，原生入口仍然可用。
 
 新增应用与工作区时先选词根，再定义各层写法。涉及现有标识改名时，把旧地址、已保存的链接和权限配置列入验收；不要在路由或数据上全局转换大小写或分隔符。
+
+## 开发中的 GEO 业务入口
+
+| 显示名 | 安装 ID | 标准模块 | Desk 入口 |
+| --- | --- | --- | --- |
+| 服务管理 | `geo_service` | `GEO Service` | `/desk/geo-service` |
+| 任务执行 | `task_execution` | `Task Execution` | `/desk/task-execution` |
+| 内容管理 | `geo_content` | `GEO Content` | `/desk/geo-content` |
+| 数据分析 | `geo_analysis` | `GEO Analysis` | `/desk/geo-analysis` |
