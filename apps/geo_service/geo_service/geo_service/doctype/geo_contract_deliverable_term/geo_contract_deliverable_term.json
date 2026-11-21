@@ -1,0 +1,90 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Contract Deliverable Term",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "deliverable_type",
+  "cadence",
+  "period_anchor",
+  "due_basis",
+  "due_offset",
+  "due_offset_unit",
+  "holiday_list",
+  "required_contents",
+  "clause_text"
+ ],
+ "fields": [
+  {
+   "fieldname": "deliverable_type",
+   "fieldtype": "Select",
+   "label": "交付物",
+   "options": "Biweekly Report\nMonthly Report\nFinal Report\nExecution Plan\nReview Meeting\nOther",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cadence",
+   "fieldtype": "Select",
+   "label": "频次",
+   "options": "Once\nWeekly\nBiweekly\nMonthly",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "period_anchor",
+   "fieldtype": "Date",
+   "label": "周期起点"
+  },
+  {
+   "fieldname": "due_basis",
+   "fieldtype": "Select",
+   "label": "应交基准",
+   "options": "After Period End\nAfter Contract End\nFixed Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "due_offset",
+   "fieldtype": "Int",
+   "label": "偏移量",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "due_offset_unit",
+   "fieldtype": "Select",
+   "label": "偏移单位",
+   "options": "Working Day\nCalendar Day",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "holiday_list",
+   "fieldtype": "Link",
+   "label": "节假日表",
+   "options": "Holiday List"
+  },
+  {
+   "fieldname": "required_contents",
+   "fieldtype": "Small Text",
+   "label": "必含内容"
+  },
+  {
+   "fieldname": "clause_text",
+   "fieldtype": "Small Text",
+   "label": "合同原文",
+   "reqd": 1
+  }
+ ],
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

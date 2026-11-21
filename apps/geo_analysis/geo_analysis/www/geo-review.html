@@ -1,0 +1,24 @@
+{% extends 'templates/web.html' %}
+{% block title %}服务采样与报告{% endblock %}
+{% block page_content %}
+<h1>服务采样与报告</h1>
+{% if not services %}<p>暂无可查看的服务。请联系服务负责人确认成员授权。</p>{% else %}
+<form method="get" class="mb-4">
+  <label>服务 <select name="service" required><option value="">请选择</option>{% for item in services %}<option value="{{ item.name|e }}" {% if item.name == selection %}selected{% endif %}>{{ item.service_title|e }}</option>{% endfor %}</select></label>
+  <label>采样日期 <input type="date" name="date" value="{{ day|default('')|e }}"></label> <button class="btn btn-primary" type="submit">查看</button>
+</form>
+{% endif %}
+{% if selection %}
+{% set base = '?service=' ~ (selection|urlencode) ~ '&date=' ~ (day|urlencode) %}
+<h2>{{ day|e }} 采集进度</h2>
+<p>应采 {{ progress.expected }} 次，实采 {{ progress.collected }} 次。</p>
+<ul>{% for row in progress.slots %}<li>{{ row.prompt_text|e }} · {{ row.capability|e }} · {{ row.window_start|e }} 至 {{ row.window_end|e }} · {{ row.status|e }} {% if row.collected %}<a href="{{ base|e }}&amp;slot={{ row.name|urlencode }}#evidence">查看回答</a>{% endif %}</li>{% else %}<li>当天暂无应采记录。</li>{% endfor %}</ul>
+<h2>近期报告</h2>
+<ul>{% for row in reports %}<li><a href="{{ base|e }}&amp;report={{ row.name|urlencode }}#report">{{ row.from_date|e }} 至 {{ row.to_date|e }} · Top 3：{{ row.top3_display|e }}</a></li>{% else %}<li>暂无报告。</li>{% endfor %}</ul>
+{% if report %}<section id="report"><h2>报告：{{ report.from_date|e }} 至 {{ report.to_date|e }}</h2><p>Top 3：{{ report.numerator }}/{{ report.denominator }}（{{ report.top3_display|e }}）。应采 {{ report.expected }}，实采 {{ report.collected }}，已复核 {{ report.reviewed }}。</p>
+<ul>{% for row in report.rows %}<li>{{ row.prompt_text|e }} · {{ row.window_start|e }} · {{ row.count_status|e }} {% if row.analysis %}<a href="{{ base|e }}&amp;report={{ report.name|urlencode }}&amp;sample={{ row.analysis|urlencode }}#evidence">核对样本</a>{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+{% if evidence %}<section id="evidence"><h2>回答原文</h2><p>{{ evidence.prompt_text|e }} · {{ evidence.observed_at|e }}</p><p style="white-space:pre-wrap">{{ evidence.answer|e }}</p>
+{% if evidence.evidence_quote %}<p>复核依据：{{ evidence.evidence_quote|e }}</p>{% endif %}
+<h3>信源</h3>{% if evidence.sources is none %}<p>采集端未取得信源列表。</p>{% else %}<ol>{% for source in evidence.sources %}<li>{{ source.title|e }} · {{ source.url|e }}</li>{% else %}<li>本条记录无信源明细。</li>{% endfor %}</ol>{% endif %}</section>{% endif %}
+{% endif %}
+{% endblock %}

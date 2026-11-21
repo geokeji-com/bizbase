@@ -1,0 +1,54 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Entity Set Revision",
+ "module": "GEO Analysis",
+ "engine": "InnoDB",
+ "field_order": [
+  "service",
+  "target",
+  "aliases",
+  "competitors"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "target",
+   "label": "标的名称",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "aliases",
+   "label": "标的别名（每行一个）",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "competitors",
+   "label": "竞品名称（每行一个）",
+   "fieldtype": "Small Text"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "report": 1
+  }
+ ],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "modified": "2026-11-21 18:10:00.000000",
+ "creation": "2026-11-21 18:10:00.000000"
+}

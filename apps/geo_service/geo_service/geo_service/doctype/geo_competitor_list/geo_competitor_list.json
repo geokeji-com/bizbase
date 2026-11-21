@@ -1,0 +1,154 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Competitor List",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "autoname": "hash",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "field_order": [
+  "service",
+  "target_entity",
+  "version_no",
+  "previous_version",
+  "column_break_meta",
+  "effective_from",
+  "change_reason",
+  "basis_note",
+  "alias_hash",
+  "section_entries",
+  "entries",
+  "aliases",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "fieldtype": "Link",
+   "label": "服务",
+   "options": "GEO Service",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "target_entity",
+   "fieldtype": "Link",
+   "label": "目标标的",
+   "options": "GEO Entity",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "version_no",
+   "fieldtype": "Int",
+   "label": "版本号",
+   "read_only": 1,
+   "in_list_view": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "previous_version",
+   "fieldtype": "Link",
+   "label": "上一版本",
+   "options": "GEO Competitor List",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "label": "生效日",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "change_reason",
+   "fieldtype": "Small Text",
+   "label": "变更原因",
+   "reqd": 1
+  },
+  {
+   "fieldname": "basis_note",
+   "fieldtype": "Small Text",
+   "label": "依据"
+  },
+  {
+   "fieldname": "alias_hash",
+   "fieldtype": "Data",
+   "label": "名单摘要",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "提交时按实体、分类和别名快照计算"
+  },
+  {
+   "fieldname": "section_entries",
+   "fieldtype": "Section Break",
+   "label": "名单"
+  },
+  {
+   "fieldname": "entries",
+   "fieldtype": "Table",
+   "label": "实体",
+   "options": "GEO Competitor List Entry"
+  },
+  {
+   "fieldname": "aliases",
+   "fieldtype": "Table",
+   "label": "别名快照",
+   "options": "GEO Competitor List Alias",
+   "description": "草稿保存时从实体补齐，只写公开信息。"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "修订自",
+   "options": "GEO Competitor List",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "GEO Admin",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "GEO Operations",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "submit": 1
+  },
+  {
+   "role": "GEO Sales",
+   "read": 1
+  },
+  {
+   "role": "GEO Report Agent",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

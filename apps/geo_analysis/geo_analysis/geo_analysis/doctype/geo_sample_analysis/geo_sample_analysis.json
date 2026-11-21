@@ -1,0 +1,130 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Sample Analysis",
+ "module": "GEO Analysis",
+ "engine": "InnoDB",
+ "field_order": [
+  "service",
+  "slot",
+  "entity_set",
+  "method",
+  "outcome",
+  "position",
+  "evidence_quote",
+  "review_note",
+  "source_result",
+  "observed_at",
+  "source_hash",
+  "mentioned_as",
+  "included",
+  "hit"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "slot",
+   "label": "应采记录",
+   "fieldtype": "Link",
+   "options": "GEO Sampling Slot",
+   "reqd": 1
+  },
+  {
+   "fieldname": "entity_set",
+   "label": "标的与竞品版本",
+   "fieldtype": "Link",
+   "options": "GEO Entity Set Revision",
+   "reqd": 1
+  },
+  {
+   "fieldname": "method",
+   "label": "分析口径版本",
+   "fieldtype": "Link",
+   "options": "GEO Analysis Method Revision",
+   "reqd": 1
+  },
+  {
+   "fieldname": "outcome",
+   "label": "人工复核结论",
+   "fieldtype": "Select",
+   "options": "Ranked\nUnranked\nRefusal",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "position",
+   "label": "推荐名次",
+   "fieldtype": "Int"
+  },
+  {
+   "fieldname": "evidence_quote",
+   "label": "回答中的原文依据",
+   "fieldtype": "Small Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "review_note",
+   "label": "判定说明",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "source_result",
+   "label": "原始回答编号",
+   "fieldtype": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "observed_at",
+   "label": "观测时间",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_hash",
+   "label": "原文 SHA-256",
+   "fieldtype": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mentioned_as",
+   "label": "原文精确匹配的名称",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "included",
+   "label": "计入分母",
+   "fieldtype": "Int",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "hit",
+   "label": "计入 Top 3 分子",
+   "fieldtype": "Int",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "report": 1
+  }
+ ],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "modified": "2026-11-21 18:10:00.000000",
+ "creation": "2026-11-21 18:10:00.000000"
+}

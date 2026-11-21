@@ -1,0 +1,116 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Entity",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "autoname": "hash",
+ "title_field": "entity_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "entity_type,entity_category",
+ "track_changes": 1,
+ "field_order": [
+  "entity_name",
+  "entity_type",
+  "entity_category",
+  "column_break_main",
+  "parent_entity",
+  "website",
+  "disabled",
+  "section_aliases",
+  "aliases"
+ ],
+ "fields": [
+  {
+   "fieldname": "entity_name",
+   "fieldtype": "Data",
+   "label": "实体名称",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "entity_type",
+   "fieldtype": "Select",
+   "label": "实体类型",
+   "options": "Company\nBrand\nProduct\nPlatform\nOther",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "entity_category",
+   "fieldtype": "Link",
+   "label": "分类",
+   "options": "GEO Entity Category",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "parent_entity",
+   "fieldtype": "Link",
+   "label": "上级实体",
+   "options": "GEO Entity"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Small Text",
+   "label": "官网"
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "停用",
+   "in_standard_filter": 1,
+   "description": "运营新建的实体默认停用，仍可用于其服务的竞品名单；由管理员审核后启用。"
+  },
+  {
+   "fieldname": "section_aliases",
+   "fieldtype": "Section Break",
+   "label": "别名"
+  },
+  {
+   "fieldname": "aliases",
+   "fieldtype": "Table",
+   "label": "别名",
+   "options": "GEO Entity Alias",
+   "description": "只写公开信息。"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "GEO Admin",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "GEO Operations",
+   "read": 1,
+   "create": 1
+  },
+  {
+   "role": "GEO Sales",
+   "read": 1
+  },
+  {
+   "role": "GEO Report Agent",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

@@ -1,0 +1,69 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Service Contract",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "contract",
+  "party_name",
+  "payer_customer",
+  "valid_from",
+  "valid_to",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "contract",
+   "fieldtype": "Link",
+   "label": "合同",
+   "options": "Contract",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "party_name",
+   "fieldtype": "Data",
+   "label": "签约方",
+   "fetch_from": "contract.party_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "payer_customer",
+   "fieldtype": "Data",
+   "label": "付款方",
+   "fetch_from": "contract.geo_payer_customer",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "生效日",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "失效日",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "备注"
+  }
+ ],
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

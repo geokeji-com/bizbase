@@ -1,0 +1,64 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Competitor List Entry",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "entity",
+  "entity_name",
+  "role",
+  "category",
+  "display_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "entity",
+   "fieldtype": "Link",
+   "label": "实体",
+   "options": "GEO Entity",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "entity_name",
+   "fieldtype": "Data",
+   "label": "名称",
+   "fetch_from": "entity.entity_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "label": "角色",
+   "options": "Competitor\nTarget",
+   "reqd": 1,
+   "default": "Competitor",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "分类",
+   "options": "GEO Entity Category",
+   "in_list_view": 1,
+   "description": "提交时从实体复制并冻结"
+  },
+  {
+   "fieldname": "display_order",
+   "fieldtype": "Int",
+   "label": "显示顺序",
+   "in_list_view": 1
+  }
+ ],
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

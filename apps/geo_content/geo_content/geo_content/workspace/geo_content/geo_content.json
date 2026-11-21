@@ -1,0 +1,32 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"app-scope\", \"type\": \"paragraph\", \"data\": {\"text\": \"<p>管理选题、稿件、审核、投放和回链。 当前版本提供工作区入口，业务功能待接入。</p>\", \"col\": 12}}]",
+ "creation": "2026-11-21 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "file-text",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "GEO Content",
+ "links": [],
+ "modified": "2026-11-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GEO Content",
+ "name": "GEO Content",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [],
+ "standard": 1,
+ "title": "GEO Content",
+ "type": "Workspace"
+}

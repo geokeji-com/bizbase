@@ -1,0 +1,79 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Worker",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "worker_user",
+  "worker_label",
+  "enabled",
+  "capabilities",
+  "account_ref",
+  "proxy_ref",
+  "last_seen_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "worker_user",
+   "label": "专用执行用户",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "worker_label",
+   "label": "设备名称",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "label": "启用",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "default": "1"
+  },
+  {
+   "fieldname": "capabilities",
+   "label": "可领取的能力",
+   "fieldtype": "Table",
+   "options": "Execution Worker Capability",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_ref",
+   "label": "绑定平台账号",
+   "fieldtype": "Link",
+   "options": "Execution Account"
+  },
+  {
+   "fieldname": "proxy_ref",
+   "label": "绑定网络出口",
+   "fieldtype": "Link",
+   "options": "Execution Proxy"
+  },
+  {
+   "fieldname": "last_seen_at",
+   "label": "最近心跳",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "autoname": "field:worker_user"
+}

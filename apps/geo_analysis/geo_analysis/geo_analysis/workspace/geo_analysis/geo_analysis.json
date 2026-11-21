@@ -1,0 +1,62 @@
+{
+ "charts": [],
+ "content": "[{\"type\": \"shortcut\", \"id\": \"service-review\", \"data\": {\"shortcut_name\": \"服务采样与报告\", \"col\": 3}}, {\"type\": \"shortcut\", \"id\": \"analysis-0\", \"data\": {\"shortcut_name\": \"标的与竞品版本\", \"col\": 3}}, {\"type\": \"shortcut\", \"id\": \"analysis-1\", \"data\": {\"shortcut_name\": \"分析口径版本\", \"col\": 3}}, {\"type\": \"shortcut\", \"id\": \"analysis-2\", \"data\": {\"shortcut_name\": \"样本复核\", \"col\": 3}}, {\"type\": \"shortcut\", \"id\": \"analysis-3\", \"data\": {\"shortcut_name\": \"指标报告\", \"col\": 3}}]",
+ "creation": "2026-11-21 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "search",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "GEO Analysis",
+ "links": [],
+ "modified": "2026-11-21 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "GEO Analysis",
+ "name": "GEO Analysis",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "label": "服务采样与报告",
+   "type": "URL",
+   "url": "/geo-review"
+  },
+  {
+   "label": "标的与竞品版本",
+   "type": "DocType",
+   "link_to": "GEO Entity Set Revision",
+   "doc_view": "List"
+  },
+  {
+   "label": "分析口径版本",
+   "type": "DocType",
+   "link_to": "GEO Analysis Method Revision",
+   "doc_view": "List"
+  },
+  {
+   "label": "样本复核",
+   "type": "DocType",
+   "link_to": "GEO Sample Analysis",
+   "doc_view": "List"
+  },
+  {
+   "label": "指标报告",
+   "type": "DocType",
+   "link_to": "GEO Report Revision",
+   "doc_view": "List"
+  }
+ ],
+ "standard": 1,
+ "title": "GEO Analysis",
+ "type": "Workspace"
+}

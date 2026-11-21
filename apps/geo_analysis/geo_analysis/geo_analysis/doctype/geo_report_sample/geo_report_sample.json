@@ -1,0 +1,94 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Report Sample",
+ "module": "GEO Analysis",
+ "engine": "InnoDB",
+ "field_order": [
+  "slot",
+  "prompt_text",
+  "capability",
+  "window_start",
+  "window_end",
+  "analysis",
+  "count_status",
+  "included",
+  "hit",
+  "mention_hit"
+ ],
+ "fields": [
+  {
+   "fieldname": "slot",
+   "label": "应采记录",
+   "fieldtype": "Link",
+   "options": "GEO Sampling Slot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "prompt_text",
+   "label": "实际问句",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "capability",
+   "label": "执行能力",
+   "fieldtype": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "window_start",
+   "label": "窗口起点",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "window_end",
+   "label": "窗口终点",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "analysis",
+   "label": "复核记录",
+   "fieldtype": "Link",
+   "options": "GEO Sample Analysis",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "count_status",
+   "label": "样本状态",
+   "fieldtype": "Data",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "included",
+   "label": "分母",
+   "fieldtype": "Int",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "hit",
+   "label": "分子",
+   "fieldtype": "Int",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "mention_hit",
+   "label": "提及分子",
+   "fieldtype": "Int",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [],
+ "allow_rename": 0,
+ "istable": 1,
+ "editable_grid": 1,
+ "modified": "2026-11-21 18:10:00.000000",
+ "creation": "2026-11-21 18:10:00.000000"
+}

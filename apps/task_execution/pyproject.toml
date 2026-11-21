@@ -1,0 +1,16 @@
+[project]
+name = "task_execution"
+description = "管理采集、发布和监测任务的领取、执行与回传。"
+authors = [{ name = "geokeji-com" }]
+requires-python = ">=3.14"
+readme = "README.md"
+license = "MIT"
+dynamic = ["version"]
+dependencies = []
+
+[build-system]
+requires = ["flit_core==3.12.0"]
+build-backend = "flit_core.buildapi"
+
+[tool.bench.frappe-dependencies]
+frappe = ">=16.56.0,<17.0.0"

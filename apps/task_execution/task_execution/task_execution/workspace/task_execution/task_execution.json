@@ -1,0 +1,75 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"exec-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"任务列表\", \"col\": 4}}, {\"id\": \"exec-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"执行尝试\", \"col\": 4}}, {\"id\": \"exec-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"执行结果\", \"col\": 4}}, {\"id\": \"exec-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"能力版本\", \"col\": 4}}, {\"id\": \"exec-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Worker 管理\", \"col\": 4}}, {\"id\": \"exec-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"平台账号\", \"col\": 4}}, {\"id\": \"exec-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"网络出口\", \"col\": 4}}]",
+ "creation": "2026-11-21 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "list",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Task Execution",
+ "links": [],
+ "modified": "2026-11-21 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Task Execution",
+ "name": "Task Execution",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "type": "DocType",
+   "link_to": "Execution Task",
+   "label": "任务列表",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Attempt",
+   "label": "执行尝试",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Result",
+   "label": "执行结果",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Capability",
+   "label": "能力版本",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Worker",
+   "label": "Worker 管理",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Account",
+   "label": "平台账号",
+   "doc_view": "List"
+  },
+  {
+   "type": "DocType",
+   "link_to": "Execution Proxy",
+   "label": "网络出口",
+   "doc_view": "List"
+  }
+ ],
+ "standard": 1,
+ "title": "Task Execution",
+ "type": "Workspace"
+}

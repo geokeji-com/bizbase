@@ -1,0 +1,102 @@
+{
+ "doctype": "DocType",
+ "module": "GEO Service",
+ "name": "GEO Sampling Slot",
+ "creation": "2026-11-21 12:00:00",
+ "modified": "2026-11-21 18:00:00",
+ "fields": [
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1
+  },
+  {
+   "fieldname": "plan",
+   "label": "计划版本",
+   "fieldtype": "Link",
+   "options": "GEO Monitoring Plan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_prompt",
+   "label": "服务问句",
+   "fieldtype": "Link",
+   "options": "GEO Service Prompt",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_name",
+   "label": "标的",
+   "fieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prompt_text",
+   "label": "问句原文",
+   "fieldtype": "Small Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "capability",
+   "label": "执行能力",
+   "fieldtype": "Link",
+   "options": "Execution Capability",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sampling_date",
+   "label": "计划日期",
+   "fieldtype": "Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "window_start",
+   "label": "时窗开始",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "window_end",
+   "label": "时窗结束",
+   "fieldtype": "Datetime",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sample_index",
+   "label": "独立样本序号",
+   "fieldtype": "Int"
+  },
+  {
+   "fieldname": "task",
+   "label": "执行任务",
+   "fieldtype": "Link",
+   "options": "Execution Task",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "field_order": [
+  "service",
+  "plan",
+  "service_prompt",
+  "target_name",
+  "prompt_text",
+  "capability",
+  "sampling_date",
+  "window_start",
+  "window_end",
+  "sample_index",
+  "task"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  }
+ ],
+ "autoname": "hash"
+}

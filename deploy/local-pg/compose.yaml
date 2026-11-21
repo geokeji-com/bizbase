@@ -13,6 +13,10 @@ x-bench: &bench
     - ../../apps/customer_board:/home/frappe/frappe-bench/apps/customer_board
     - ../../apps/yishan_id:/home/frappe/frappe-bench/apps/yishan_id
     - ../../apps/file_share:/home/frappe/frappe-bench/apps/file_share
+    - ../../apps/geo_service:/home/frappe/frappe-bench/apps/geo_service
+    - ../../apps/task_execution:/home/frappe/frappe-bench/apps/task_execution
+    - ../../apps/geo_content:/home/frappe/frappe-bench/apps/geo_content
+    - ../../apps/geo_analysis:/home/frappe/frappe-bench/apps/geo_analysis
 
 services:
   db:

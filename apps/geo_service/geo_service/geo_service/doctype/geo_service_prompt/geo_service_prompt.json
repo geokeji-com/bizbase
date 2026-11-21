@@ -1,0 +1,85 @@
+{
+ "doctype": "DocType",
+ "module": "GEO Service",
+ "name": "GEO Service Prompt",
+ "creation": "2026-11-21 12:00:00",
+ "modified": "2026-11-21 18:00:00",
+ "fields": [
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_name",
+   "label": "优化标的",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "prompt_text",
+   "label": "问句原文",
+   "fieldtype": "Small Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prompt",
+   "label": "全局问句",
+   "fieldtype": "Link",
+   "options": "GEO Prompt",
+   "read_only": 1
+  },
+  {
+   "fieldname": "active_from",
+   "label": "监测开始",
+   "fieldtype": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "active_until",
+   "label": "监测截至",
+   "fieldtype": "Date"
+  },
+  {
+   "fieldname": "replaces",
+   "label": "替换此问句",
+   "fieldtype": "Link",
+   "options": "GEO Service Prompt"
+  },
+  {
+   "fieldname": "change_reason",
+   "label": "换词依据",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "confirmed_by",
+   "label": "换词确认人",
+   "fieldtype": "Link",
+   "options": "User"
+  }
+ ],
+ "field_order": [
+  "service",
+  "target_name",
+  "prompt_text",
+  "prompt",
+  "active_from",
+  "active_until",
+  "replaces",
+  "change_reason",
+  "confirmed_by"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "track_changes": 1,
+ "autoname": "format:SP-{#####}"
+}

@@ -1,0 +1,142 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Report Revision",
+ "module": "GEO Analysis",
+ "engine": "InnoDB",
+ "field_order": [
+  "service",
+  "entity_set",
+  "method",
+  "from_date",
+  "to_date",
+  "prompt_filter",
+  "capability_filter",
+  "expected",
+  "collected",
+  "reviewed",
+  "numerator",
+  "denominator",
+  "top3_display",
+  "rows",
+  "mention_count",
+  "mention_rate"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "entity_set",
+   "label": "标的与竞品版本",
+   "fieldtype": "Link",
+   "options": "GEO Entity Set Revision",
+   "reqd": 1
+  },
+  {
+   "fieldname": "method",
+   "label": "分析口径版本",
+   "fieldtype": "Link",
+   "options": "GEO Analysis Method Revision",
+   "reqd": 1
+  },
+  {
+   "fieldname": "from_date",
+   "label": "起始日期",
+   "fieldtype": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "label": "截至日期",
+   "fieldtype": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prompt_filter",
+   "label": "限定服务问句（可选）",
+   "fieldtype": "Link",
+   "options": "GEO Service Prompt"
+  },
+  {
+   "fieldname": "capability_filter",
+   "label": "限定执行能力编号（可选）",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "expected",
+   "label": "应采次数",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "collected",
+   "label": "实采次数",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reviewed",
+   "label": "已复核独立样本",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "numerator",
+   "label": "Top 3 分子",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "denominator",
+   "label": "有效样本分母",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "top3_display",
+   "label": "Top 3 率",
+   "fieldtype": "Data",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "rows",
+   "label": "采样与计数明细",
+   "fieldtype": "Table",
+   "options": "GEO Report Sample",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mention_count",
+   "label": "提及样本数",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mention_rate",
+   "label": "精确提及率",
+   "fieldtype": "Data",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "report": 1
+  }
+ ],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "modified": "2026-11-21 18:10:00.000000",
+ "creation": "2026-11-21 18:10:00.000000"
+}

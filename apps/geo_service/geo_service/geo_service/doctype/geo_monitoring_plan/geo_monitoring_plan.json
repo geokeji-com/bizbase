@@ -1,0 +1,113 @@
+{
+ "doctype": "DocType",
+ "module": "GEO Service",
+ "name": "GEO Monitoring Plan",
+ "creation": "2026-11-21 12:00:00",
+ "modified": "2026-11-21 18:00:00",
+ "fields": [
+  {
+   "fieldname": "plan_title",
+   "label": "计划名称",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "service",
+   "label": "服务",
+   "fieldtype": "Link",
+   "options": "GEO Service",
+   "reqd": 1
+  },
+  {
+   "fieldname": "replaces_plan",
+   "label": "替换计划版本",
+   "fieldtype": "Link",
+   "options": "GEO Monitoring Plan"
+  },
+  {
+   "fieldname": "revision",
+   "label": "版本",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "effective_from",
+   "label": "生效日期",
+   "fieldtype": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "effective_until",
+   "label": "截至日期",
+   "fieldtype": "Date"
+  },
+  {
+   "fieldname": "capability",
+   "label": "平台执行能力",
+   "fieldtype": "Link",
+   "options": "Execution Capability",
+   "reqd": 1
+  },
+  {
+   "fieldname": "parameters_json",
+   "label": "平台参数",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "reqd": 1,
+   "default": "{}"
+  },
+  {
+   "fieldname": "time_zone",
+   "label": "时区",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "default": "Asia/Shanghai"
+  },
+  {
+   "fieldname": "weekdays",
+   "label": "采样星期（1 至 7，以逗号分隔）",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "default": "1,2,3,4,5,6,7"
+  },
+  {
+   "fieldname": "prompts",
+   "label": "服务问句",
+   "fieldtype": "Table",
+   "options": "GEO Plan Prompt"
+  },
+  {
+   "fieldname": "windows",
+   "label": "每日时窗",
+   "fieldtype": "Table",
+   "options": "GEO Plan Window"
+  }
+ ],
+ "field_order": [
+  "plan_title",
+  "service",
+  "replaces_plan",
+  "revision",
+  "effective_from",
+  "effective_until",
+  "capability",
+  "parameters_json",
+  "time_zone",
+  "weekdays",
+  "prompts",
+  "windows"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "track_changes": 1,
+ "title_field": "plan_title",
+ "show_title_field_in_link": 1,
+ "autoname": "format:PLAN-{#####}"
+}

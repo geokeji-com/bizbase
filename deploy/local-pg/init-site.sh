@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 site=frontend
-apps=(frappe erpnext yishan_id file_share management_board sales_board ops_board customer_board insights)
+apps=(frappe erpnext yishan_id file_share management_board sales_board ops_board customer_board insights task_execution geo_service geo_content geo_analysis)
 if [[ -f sites/$site/site_config.json ]] && { grep -Fxq bizbase_mgmt sites/apps.txt || ! grep -Fxq management_board sites/apps.txt; }; then
   printf '%s\n' '已有站请先按 deploy/prod/management-board-migration.md 在旧镜像离线迁移，不可直接覆盖清单。' >&2
   exit 1

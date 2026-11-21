@@ -1,0 +1,164 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Service",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "autoname": "hash",
+ "title_field": "service_name",
+ "show_title_field_in_link": 1,
+ "search_fields": "served_customer,status",
+ "track_changes": 1,
+ "field_order": [
+  "service_name",
+  "served_customer",
+  "status",
+  "is_paused",
+  "column_break_dates",
+  "start_date",
+  "planned_end_date",
+  "actual_end_date",
+  "reopen_reason",
+  "section_contracts",
+  "contracts",
+  "section_targets",
+  "targets",
+  "section_members",
+  "members"
+ ],
+ "fields": [
+  {
+   "fieldname": "service_name",
+   "fieldtype": "Data",
+   "label": "服务名称",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "served_customer",
+   "fieldtype": "Link",
+   "label": "被服务组织",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "状态",
+   "options": "Draft\nActive\nEnded",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "is_paused",
+   "fieldtype": "Check",
+   "label": "暂停中",
+   "read_only": 1,
+   "in_list_view": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "开始日",
+   "reqd": 1
+  },
+  {
+   "fieldname": "planned_end_date",
+   "fieldtype": "Date",
+   "label": "计划结束日",
+   "description": "留空时取合同结束日。到期不自动结束，只提示逾期。"
+  },
+  {
+   "fieldname": "actual_end_date",
+   "fieldtype": "Date",
+   "label": "实际结束日",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "reopen_reason",
+   "fieldtype": "Small Text",
+   "label": "撤销结束原因",
+   "read_only": 1,
+   "no_copy": 1,
+   "depends_on": "reopen_reason"
+  },
+  {
+   "fieldname": "section_contracts",
+   "fieldtype": "Section Break",
+   "label": "合同"
+  },
+  {
+   "fieldname": "contracts",
+   "fieldtype": "Table",
+   "label": "关联合同",
+   "options": "GEO Service Contract"
+  },
+  {
+   "fieldname": "section_targets",
+   "fieldtype": "Section Break",
+   "label": "优化标的"
+  },
+  {
+   "fieldname": "targets",
+   "fieldtype": "Table",
+   "label": "优化标的",
+   "options": "GEO Service Target"
+  },
+  {
+   "fieldname": "section_members",
+   "fieldtype": "Section Break",
+   "label": "服务成员"
+  },
+  {
+   "fieldname": "members",
+   "fieldtype": "Table",
+   "label": "服务成员",
+   "options": "GEO Service Member",
+   "description": "分工变化时给旧行填结束日并新增一行，不删旧行。"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "GEO Admin",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "GEO Operations",
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "GEO Sales",
+   "read": 1,
+   "create": 1
+  },
+  {
+   "role": "GEO Report Agent",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

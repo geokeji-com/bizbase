@@ -8,6 +8,7 @@ EXPECTED = {
     "frappe": "16.56.0", "erpnext": "16.55.0", "insights": "3.50.1",
     "yishan_id": "0.1.0", "file_share": "0.1.0", "management_board": "0.0.1",
     "sales_board": "0.0.1", "ops_board": "0.0.1", "customer_board": "0.0.1",
+    "geo_service": "0.0.1", "task_execution": "0.0.1", "geo_content": "0.0.1", "geo_analysis": "0.0.1",
 }
 
 

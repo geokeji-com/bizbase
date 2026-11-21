@@ -1,0 +1,139 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Task",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "request_key",
+  "operation",
+  "capability",
+  "prompt_text",
+  "parameters",
+  "window_start",
+  "window_end",
+  "sample_index",
+  "state",
+  "first_claimed_at",
+  "completed_at",
+  "attempt_count",
+  "current_attempt",
+  "lease_until"
+ ],
+ "fields": [
+  {
+   "fieldname": "request_key",
+   "label": "任务唯一键",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "operation",
+   "label": "操作",
+   "fieldtype": "Select",
+   "options": "prompt\nlink_check",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "capability",
+   "label": "能力版本",
+   "fieldtype": "Link",
+   "options": "Execution Capability",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "prompt_text",
+   "label": "输入",
+   "fieldtype": "Long Text",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "parameters",
+   "label": "请求参数",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "window_start",
+   "label": "开始时间",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "window_end",
+   "label": "截止时间",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "sample_index",
+   "label": "独立样本序号",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "label": "任务状态",
+   "fieldtype": "Select",
+   "options": "Queued\nRunning\nSucceeded\nFailed\nExpired",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_claimed_at",
+   "label": "首次领取时间",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "label": "完成时间",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "attempt_count",
+   "label": "尝试次数",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_attempt",
+   "label": "最近执行尝试",
+   "fieldtype": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lease_until",
+   "label": "租约截止",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "field:request_key"
+}

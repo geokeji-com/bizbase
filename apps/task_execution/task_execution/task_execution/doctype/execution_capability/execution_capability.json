@@ -1,0 +1,82 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Capability",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "capability_key",
+  "operation",
+  "platform",
+  "channel",
+  "version_tag",
+  "parameter_schema",
+  "enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "capability_key",
+   "label": "能力版本标识",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "operation",
+   "label": "操作",
+   "fieldtype": "Select",
+   "options": "prompt\nlink_check",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "platform",
+   "label": "平台",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "channel",
+   "label": "端",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "version_tag",
+   "label": "版本",
+   "fieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "parameter_schema",
+   "label": "参数与允许值（JSON）",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "reqd": 1,
+   "default": "{}"
+  },
+  {
+   "fieldname": "enabled",
+   "label": "启用",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "default": "1"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "autoname": "field:capability_key"
+}

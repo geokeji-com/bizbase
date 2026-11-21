@@ -1,0 +1,67 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Entity Category",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "autoname": "field:category_code",
+ "title_field": "category_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "category_code",
+ "sort_order": "ASC",
+ "field_order": [
+  "category_code",
+  "category_name",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "category_code",
+   "fieldtype": "Data",
+   "label": "分类代码",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "只用小写字母、数字和下划线"
+  },
+  {
+   "fieldname": "category_name",
+   "fieldtype": "Data",
+   "label": "分类名称",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "说明"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "GEO Admin",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "GEO Operations",
+   "read": 1
+  },
+  {
+   "role": "GEO Sales",
+   "read": 1
+  },
+  {
+   "role": "GEO Report Agent",
+   "read": 1
+  }
+ ],
+ "index_web_pages_for_search": 0
+}

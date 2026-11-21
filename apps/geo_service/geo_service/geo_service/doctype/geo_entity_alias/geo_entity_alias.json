@@ -1,0 +1,52 @@
+{
+ "doctype": "DocType",
+ "name": "GEO Entity Alias",
+ "module": "GEO Service",
+ "engine": "InnoDB",
+ "creation": "2026-11-21 10:00:00.000000",
+ "modified": "2026-11-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "alias_text",
+  "alias_kind",
+  "match_mode",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "alias_text",
+   "fieldtype": "Data",
+   "label": "别名",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "alias_kind",
+   "fieldtype": "Select",
+   "label": "别名类型",
+   "options": "Official\nShort\nColloquial\nEnglish\nFormer\nOther",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "match_mode",
+   "fieldtype": "Select",
+   "label": "匹配方式",
+   "options": "Case Insensitive\nExact\nWord Boundary",
+   "reqd": 1,
+   "default": "Case Insensitive",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "备注"
+  }
+ ],
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "index_web_pages_for_search": 0
+}

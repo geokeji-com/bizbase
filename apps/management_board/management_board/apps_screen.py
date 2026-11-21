@@ -18,6 +18,10 @@ APPS_SCREEN_ORDER = {
 	"insights": 11,
 	"erpnext": 13,
 	"frappe": 14,
+	"geo_service": 21,
+	"task_execution": 22,
+	"geo_content": 23,
+	"geo_analysis": 24,
 }
 
 APPS_SCREEN_TITLES = {

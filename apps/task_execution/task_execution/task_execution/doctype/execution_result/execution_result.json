@@ -1,0 +1,113 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Result",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "task",
+  "attempt",
+  "observed_at",
+  "response_kind",
+  "answer",
+  "actual_parameters",
+  "sources",
+  "share_url",
+  "http_status",
+  "final_url",
+  "result_digest"
+ ],
+ "fields": [
+  {
+   "fieldname": "task",
+   "label": "任务",
+   "fieldtype": "Link",
+   "options": "Execution Task",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "attempt",
+   "label": "执行尝试",
+   "fieldtype": "Link",
+   "options": "Execution Attempt",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "observed_at",
+   "label": "实际观测时间",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "response_kind",
+   "label": "结果类型",
+   "fieldtype": "Select",
+   "options": "answer\nrefusal\nlink_check",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "answer",
+   "label": "回答原文",
+   "fieldtype": "Long Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "actual_parameters",
+   "label": "确认的实际参数",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sources",
+   "label": "引用信源（有序 JSON）",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "share_url",
+   "label": "平台分享地址",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "http_status",
+   "label": "HTTP 状态码",
+   "fieldtype": "Int",
+   "read_only": 1
+  },
+  {
+   "fieldname": "final_url",
+   "label": "最终地址",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_digest",
+   "label": "回传凭据摘要",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "field:task"
+}

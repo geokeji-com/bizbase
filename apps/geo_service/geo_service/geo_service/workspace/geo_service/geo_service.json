@@ -1,0 +1,61 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"scope\", \"type\": \"paragraph\", \"data\": {\"text\": \"<p>从合同建立服务，维护标的和问句，配置监测计划并核对每日采样缺口。</p>\", \"col\": 12}}, {\"id\": \"service-shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"服务档案\", \"col\": 3}}, {\"id\": \"service-shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"服务问句\", \"col\": 3}}, {\"id\": \"service-shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"监测计划\", \"col\": 3}}, {\"id\": \"service-shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"应采明细\", \"col\": 3}}]",
+ "creation": "2026-11-21 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "folder",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "GEO Service",
+ "links": [],
+ "modified": "2026-11-21 19:00:00",
+ "modified_by": "Administrator",
+ "module": "GEO Service",
+ "name": "GEO Service",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "label": "服务档案",
+   "link_to": "GEO Service",
+   "type": "DocType",
+   "doc_view": "List",
+   "color": "Grey"
+  },
+  {
+   "label": "服务问句",
+   "link_to": "GEO Service Prompt",
+   "type": "DocType",
+   "doc_view": "List",
+   "color": "Grey"
+  },
+  {
+   "label": "监测计划",
+   "link_to": "GEO Monitoring Plan",
+   "type": "DocType",
+   "doc_view": "List",
+   "color": "Grey"
+  },
+  {
+   "label": "应采明细",
+   "link_to": "GEO Sampling Slot",
+   "type": "DocType",
+   "doc_view": "List",
+   "color": "Grey"
+  }
+ ],
+ "standard": 1,
+ "title": "GEO Service",
+ "type": "Workspace"
+}

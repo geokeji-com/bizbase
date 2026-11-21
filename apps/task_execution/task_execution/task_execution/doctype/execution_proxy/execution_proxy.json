@@ -1,0 +1,54 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Proxy",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "proxy_label",
+  "region",
+  "enabled",
+  "credential_ref"
+ ],
+ "fields": [
+  {
+   "fieldname": "proxy_label",
+   "label": "出口标识",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "in_list_view": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "region",
+   "label": "地区",
+   "fieldtype": "Data",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "label": "启用",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "default": "1"
+  },
+  {
+   "fieldname": "credential_ref",
+   "label": "配置引用（不填密钥）",
+   "fieldtype": "Data"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1
+  }
+ ],
+ "autoname": "field:proxy_label"
+}

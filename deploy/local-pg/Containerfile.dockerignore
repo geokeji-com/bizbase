@@ -6,6 +6,10 @@
 !apps/customer_board/**
 !apps/yishan_id/**
 !apps/file_share/**
+!apps/geo_service/**
+!apps/task_execution/**
+!apps/geo_content/**
+!apps/geo_analysis/**
 !deploy/
 !deploy/local-crm/nginx.conf.template
 !deploy/prod/pg_compat.py

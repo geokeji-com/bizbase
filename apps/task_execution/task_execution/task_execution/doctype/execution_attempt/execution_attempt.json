@@ -1,0 +1,99 @@
+{
+ "doctype": "DocType",
+ "name": "Execution Attempt",
+ "module": "Task Execution",
+ "engine": "InnoDB",
+ "modified": "2026-11-21 14:00:00.000000",
+ "creation": "2026-11-21 14:00:00.000000",
+ "field_order": [
+  "task",
+  "worker",
+  "claimed_at",
+  "lease_until",
+  "ended_at",
+  "state",
+  "reason",
+  "account_ref",
+  "proxy_ref"
+ ],
+ "fields": [
+  {
+   "fieldname": "task",
+   "label": "任务",
+   "fieldtype": "Link",
+   "options": "Execution Task",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "worker",
+   "label": "执行设备",
+   "fieldtype": "Link",
+   "options": "Execution Worker",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "claimed_at",
+   "label": "领取时间",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "lease_until",
+   "label": "租约截止",
+   "fieldtype": "Datetime",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "ended_at",
+   "label": "结束时间",
+   "fieldtype": "Datetime",
+   "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "label": "执行状态",
+   "fieldtype": "Select",
+   "options": "Running\nSucceeded\nFailed\nExpired",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "label": "原因",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "account_ref",
+   "label": "使用账号",
+   "fieldtype": "Link",
+   "options": "Execution Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "proxy_ref",
+   "label": "使用出口",
+   "fieldtype": "Link",
+   "options": "Execution Proxy",
+   "read_only": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "hash"
+}

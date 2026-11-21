@@ -1,0 +1,25 @@
+{
+ "doctype": "DocType",
+ "module": "GEO Service",
+ "name": "GEO Prompt",
+ "creation": "2026-11-21 12:00:00",
+ "modified": "2026-11-21 18:00:00",
+ "fields": [
+  {
+   "fieldname": "prompt_text",
+   "label": "问句原文",
+   "fieldtype": "Small Text",
+   "reqd": 1
+  }
+ ],
+ "field_order": [
+  "prompt_text"
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  }
+ ],
+ "autoname": "hash"
+}
