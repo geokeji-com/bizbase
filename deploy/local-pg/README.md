@@ -19,7 +19,11 @@
    rtk proxy curl -fsS http://127.0.0.1:8080/api/method/ping
    ```
 
-   新站使用 ERPNext 内置 CRM（销售人员从 ERP 卡片进入）。独立 CRM 仅在待迁移的旧站保留。安装清单为 frappe、ERPNext、移山 ID、文件分享、管理/销售/运营/客户四个看板与 Insights。管理员账号 `Administrator`，密码仅在本机密码文件中查看。业务数据库只在 Compose 网络可达。六个自研应用以源码目录绑定给 bench，Build 标准定义可回写仓库。变更 Python 依赖或静态资源须重建镜像。
+   新站使用 ERPNext 内置 CRM（销售人员从 ERP 卡片进入）。独立 CRM 仅在待迁移的旧站保留。安装清单包括 frappe、ERPNext、移山 ID、文件分享、四个看板、Insights 和 [四个 GEO 业务应用](../../docs/business/geo-apps.md)。管理员账号 `Administrator`，密码仅在本机密码文件中查看。业务数据库只在 Compose 网络可达。自研应用以源码目录绑定给 bench，Build 标准定义可回写仓库。变更 Python 依赖或静态资源须重建镜像。
+
+### GEO 三个应用的隔离联验
+
+在已安装新 DocType 的独立 18080 预览站，运行 `rtk proxy docker exec -i bizbase-geo-preview-backend-1 env/bin/python - < deploy/local-pg/geo-acceptance.py`。脚本创建两个合成客户、各自的合同和服务，并用专用临时 Worker 测试领取、续租、失败重试和重复回传；断言三条应采记录、两个结果、两份独立报告的分子分母，以及服务成员的访问范围。最终回滚测试记录。不在生产或真实业务库运行。预览站使用 `Administrator` 登录，密码位于 `~/.local/share/bizbase-geo-preview/admin_password`。
 
 ### 文件分享的本地域名验收
 
