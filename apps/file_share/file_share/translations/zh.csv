@@ -20,6 +20,7 @@ Inherit,继承默认权限
 Pinned,固定版本
 Follow,跟随当前发布版
 File Share Access Log,访问记录
+File Share Grant,终端授权
 Share not found,分享不存在
 This share has been disabled,此分享已停用
 You don't have permission to access this share,您无权访问此分享

@@ -20,11 +20,13 @@ add_to_apps_screen = [
 page_renderer = ["file_share.serve.ShareRenderer"]
 
 permission_query_conditions = {
+	"File Share Grant": "file_share.file_share.doctype.file_share_grant.file_share_grant.grant_query",
 	"File Share": "file_share.permissions.share_query",
 	"File Share Access Log": "file_share.permissions.access_log_query",
 }
 
 has_permission = {
+	"File Share Grant": "file_share.file_share.doctype.file_share_grant.file_share_grant.grant_permission",
 	"File Share": "file_share.permissions.share_has_permission",
 	"File Share Access Log": "file_share.permissions.access_log_has_permission",
 }

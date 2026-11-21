@@ -49,6 +49,7 @@ test("sidebar emits the canonical link without replacing DocType permission filt
 	assert.deepEqual(sidebar.items.map(i => [i.label, i.link_type, i.link_to]), [
 		["文件分享", "DocType", "File Share"],
 		["访问记录", "DocType", "File Share Access Log"],
+		["终端授权", "DocType", "File Share Grant"],
 		["分享域名", "DocType", "File Share Domain"],
 	]);
 });

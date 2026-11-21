@@ -2,6 +2,7 @@
 frappe.listview_settings["File Share"] = {
 	add_fields: ["owner"],
 	onload(list) {
+		list.page.add_menu_item(__("安装文件分享助手"), () => window.location.assign("/file-share-setup"));
 		const show_creator = () => {
 			const existing = list.columns.find((col) => col.df?.fieldname === "owner");
 			if (existing) {

@@ -52,7 +52,7 @@ with admin():
     assert report.entries[0].legacy_domain_epoch and report.access_salt == original_salt
     assert frappe.db.get_value('File Share Access Log', log.name, 'title_snapshot') == report.title
     sidebar = frappe.get_doc('Sidebar', 'File Share')
-    assert [item.link_to for item in sidebar.items] == ['File Share', 'File Share Access Log', 'File Share Domain']
+    assert [item.link_to for item in sidebar.items] == ['File Share', 'File Share Access Log', 'File Share Grant', 'File Share Domain']
     for version in (2, 3, 4):
         report.reload()
         report.upload, report.publish_upload = upload(version), int(version < 4)

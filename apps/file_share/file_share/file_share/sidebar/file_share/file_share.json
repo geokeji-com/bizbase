@@ -6,6 +6,7 @@
  "items": [
   {"type": "Link", "label": "文件分享", "link_type": "DocType", "link_to": "File Share", "icon": "files"},
   {"type": "Link", "label": "访问记录", "link_type": "DocType", "link_to": "File Share Access Log", "icon": "history"},
+  {"type": "Link", "label": "终端授权", "link_type": "DocType", "link_to": "File Share Grant", "icon": "lock"},
   {"type": "Link", "label": "分享域名", "link_type": "DocType", "link_to": "File Share Domain", "icon": "globe"}
  ],
  "modified": "2026-11-20 12:00:00.000000",
