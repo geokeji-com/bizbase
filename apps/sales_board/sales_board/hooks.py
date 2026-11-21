@@ -4,6 +4,9 @@ app_publisher = "geokeji-com"
 app_description = "销售看板"
 app_license = "MIT"
 
+extend_bootinfo = ["sales_board.erp_navigation.apply"]
+app_include_css = ["/assets/sales_board/erp-navigation.css"]
+
 add_to_apps_screen = [
     {
         "name": app_name,

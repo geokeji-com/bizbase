@@ -1,0 +1,5 @@
+/* Only the external Frappe CRM promotion; retain other sidebar notices. */
+.promotional-banners:has(> .promotional-banner:only-child[href^="https://frappe.io/crm?"]),
+.promotional-banner[href^="https://frappe.io/crm?"] {
+    display: none !important;
+}
