@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>授权文件分享 CLI</title>
+<style>body{font:1rem/1.6 system-ui,sans-serif;max-width:34rem;margin:8vh auto;padding:0 1rem}code{font:600 1.4rem monospace;letter-spacing:.1rem}button{font:inherit;padding:.4rem 1rem}</style></head>
+<body><main><h1>授权文件分享 CLI</h1><p>账号 <strong>{{ account | e }}</strong> 将授权终端 <strong>{{ device_label | e }}</strong> 在你现有的文件分享权限内查询报告、上传、发布、切换版本和关闭发布入口。</p>
+<p>请核对发起登录的终端显示相同代码：<code>{{ match_code | e }}</code>。仅批准你自己发起的请求。</p>
+<p>本次请求五分钟内有效。授权最长八小时，浏览器会话失效后停止使用。</p>
+<button id="approve" data-challenge="{{ challenge | e }}" data-csrf="{{ approval_csrf | e }}">确认授权</button> <span id="result" role="status"></span></main>
+<script>
+const approve = document.getElementById('approve');
+approve.addEventListener('click', async () => {
+  approve.disabled = true;
+  try {
+    const r = await fetch('/api/method/file_share.cli_auth.approve', {method:'POST', credentials:'same-origin', redirect:'error', headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':approve.dataset.csrf}, body: JSON.stringify({challenge:approve.dataset.challenge})});
+    if (!r.ok || !(await r.json()).message?.approved) throw new Error();
+    document.getElementById('result').textContent = '授权成功，可以返回终端。';
+  } catch { document.getElementById('result').textContent = '授权未确认。请返回终端重新开始。'; }
+});
+</script></body></html>
