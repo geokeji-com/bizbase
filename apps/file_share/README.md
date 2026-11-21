@@ -2,6 +2,8 @@
 
 员工在 Desk 发布 HTML 报告或 ZIP 静态站点。一份报告只有一个区分大小写的分享 ID、一套版本历史；每个发布域名对应一个独立入口，收件人使用 `https://<域名>/file-share/s/<10 位分享 ID>`。应用依赖 Frappe v16 和 ERPNext Employee。
 
+员工可通过 [CLI、HTTP API 和 Agent](EMPLOYEE_API.md) 查询自己的报告、上传草稿、向指定域名发布或回退版本、关闭入口。
+
 ## 管理员：接入分享域名
 
 在文件分享应用的「分享域名」登记名称和完整外部地址（例如 `https://reports.example.com`），先设为待接入。DNS、HTTPS 和 Nginx 配置由运维完成，参考[生产渠道代理样例](../../deploy/prod/share-domain.conf.example)及[开发站说明](../../deploy/local-pg/README.md)。验证从外网可访问后再启用；登记本身不会部署代理或签发证书。普通员工没有配置页权限，只能在分享表单里选取可用域名。启用新域名不会开放任何既有报告。停用域名影响其下的全部报告；关闭报告的一行发布入口只影响该报告。

@@ -1,0 +1,11 @@
+# Reuse the accepted sales image and update only the already-installed file_share app.
+ARG ACTIVE_BASE
+FROM ${ACTIVE_BASE}
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+COPY --chown=frappe:0 apps/file_share/ apps/file_share/
+RUN test -s assets/file_share/agent/bizbase.pyz \
+    && test -s assets/file_share/agent/manifest.json \
+    && test -s apps/file_share/file_share/www/file-share-setup.html \
+    && test -s apps/file_share/file_share/file_share/doctype/file_share_grant/file_share_grant.json \
+    && env/bin/python -m unittest file_share.tests.test_cli_auth file_share.tests.test_core file_share.tests.test_policy

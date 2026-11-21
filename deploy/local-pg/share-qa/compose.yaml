@@ -23,6 +23,7 @@ services:
     volumes:
       - ../../../apps/file_share:/home/frappe/frappe-bench/apps/file_share:ro
       - .:/qa:ro
+      - ../../../tools:/qa-tools:ro
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_started}

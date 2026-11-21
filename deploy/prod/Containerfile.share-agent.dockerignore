@@ -1,0 +1,6 @@
+**
+!apps/
+!apps/file_share/
+!apps/file_share/**
+**/__pycache__
+**/*.pyc
